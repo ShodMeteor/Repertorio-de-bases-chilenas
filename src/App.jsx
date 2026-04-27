@@ -5,10 +5,11 @@ const datasets = [
     id: "paes-2025",
     nombre: "PAES 2025",
     area: "Educación",
-    nivel: "Intermedio",
-    limpieza: "Media",
+    icono: "🎓",
+    formato: "CSV",
     tamano: "Grande",
     analisis: ["Exploratorio", "t-test", "ANOVA", "Correlación"],
+    fuenteNombre: "Agencia de Calidad de la Educación",
     descripcion:
       "Resultados de estudiantes en Matemática, Competencia Lectora, NEM, Ranking y variables del establecimiento.",
     contexto:
@@ -35,8 +36,7 @@ const datasets = [
       "CODIGO_REGION",
     ],
     descarga: "/archivos/ArchivoC_Adm2025.csv",
-    fuenteOriginal:
-      "https://informacionestadistica.agenciaeducacion.cl/#/bases",
+    fuenteOriginal: "https://informacionestadistica.agenciaeducacion.cl/#/bases",
     script: `datos <- read.csv("ArchivoC_Adm2025.csv", sep = ";")
 
 # Filtrar colegios de interés y situación de egreso
@@ -73,10 +73,11 @@ summary(datos_final)`,
     id: "simce-2m-2024",
     nombre: "SIMCE 2° medio 2024",
     area: "Educación",
-    nivel: "Básico",
-    limpieza: "Baja",
+    icono: "🎓",
+    formato: "CSV",
     tamano: "Mediana",
     analisis: ["Exploratorio", "ANOVA", "Correlación"],
+    fuenteNombre: "Agencia de Calidad de la Educación",
     descripcion:
       "Resultados promedio por establecimiento en Matemática y Lectura, con región, comuna y dependencia administrativa.",
     contexto:
@@ -101,8 +102,7 @@ summary(datos_final)`,
       "prom_lect2m_rbd",
     ],
     descarga: "/archivos/simce2m2024_rbd_preliminar.csv",
-    fuenteOriginal:
-      "https://informacionestadistica.agenciaeducacion.cl/#/bases",
+    fuenteOriginal: "https://informacionestadistica.agenciaeducacion.cl/#/bases",
     script: `datos <- read.csv("simce2m2024_rbd_preliminar.csv",
                   sep = ";",
                   encoding = "latin1")
@@ -136,10 +136,11 @@ summary(datos_simce)`,
     id: "casen-2024",
     nombre: "CASEN 2024",
     area: "Datos sociales",
-    nivel: "Intermedio",
-    limpieza: "Alta",
+    icono: "📊",
+    formato: "RData",
     tamano: "Grande",
     analisis: ["Exploratorio", "Regresión", "Correlación"],
+    fuenteNombre: "Observatorio Social",
     descripcion:
       "Encuesta socioeconómica con ingreso, escolaridad, pobreza, asistencia y deserción.",
     contexto:
@@ -217,10 +218,11 @@ summary(datos_casen2)`,
     id: "aire-cerrillos",
     nombre: "Calidad del aire - Cerrillos",
     area: "Medio ambiente",
-    nivel: "Intermedio",
-    limpieza: "Media",
+    icono: "🌱",
+    formato: "CSV",
     tamano: "Mediana",
     analisis: ["Exploratorio", "ANOVA", "Análisis temporal básico"],
+    fuenteNombre: "SINCA / Ministerio del Medio Ambiente",
     descripcion:
       "Registros diarios validados de monitoreo ambiental para trabajar por mes, año y estación.",
     contexto:
@@ -325,18 +327,21 @@ summary(datos_validos)`,
 const areas = [
   {
     nombre: "Educación",
+    icono: "🎓",
     descripcion:
       "Bases para rendimiento académico, contexto escolar y comparaciones entre establecimientos.",
     color: "#1d4ed8",
   },
   {
     nombre: "Datos sociales",
+    icono: "📊",
     descripcion:
       "Bases para estudiar ingreso, pobreza, escolaridad y desigualdad.",
     color: "#047857",
   },
   {
     nombre: "Medio ambiente",
+    icono: "🌱",
     descripcion:
       "Bases para calidad del aire, registros ambientales y análisis temporal básico.",
     color: "#b45309",
@@ -355,6 +360,24 @@ const filtrosDisponibles = {
   ],
 };
 
+const fuentes = [
+  {
+    nombre: "Agencia de Calidad de la Educación",
+    descripcion: "Bases relacionadas con SIMCE, PAES y resultados educativos.",
+    url: "https://informacionestadistica.agenciaeducacion.cl/#/bases",
+  },
+  {
+    nombre: "Observatorio Social",
+    descripcion: "Información oficial de CASEN y otras encuestas sociales.",
+    url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024",
+  },
+  {
+    nombre: "SINCA",
+    descripcion: "Sistema de Información Nacional de Calidad del Aire.",
+    url: "https://sinca.mma.gob.cl/index.php/",
+  },
+];
+
 const s = {
   page: {
     minHeight: "100vh",
@@ -368,6 +391,11 @@ const s = {
     color: "white",
     padding: "18px 56px",
     borderBottom: "4px solid #1d4ed8",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "20px",
+    flexWrap: "wrap",
   },
   headerTitle: {
     margin: 0,
@@ -379,6 +407,17 @@ const s = {
     color: "#cbd5e1",
     fontSize: "14px",
   },
+  nav: {
+    display: "flex",
+    gap: "18px",
+    fontSize: "14px",
+    color: "#e5e7eb",
+  },
+  navItem: {
+    color: "#e5e7eb",
+    textDecoration: "none",
+    cursor: "pointer",
+  },
   mainWrap: {
     width: "100%",
     padding: "34px 56px",
@@ -387,21 +426,21 @@ const s = {
     background: "white",
     borderRadius: "8px",
     border: "1px solid #dbe3ef",
-    padding: "36px 44px",
+    padding: "38px 44px",
     boxShadow: "0 6px 18px rgba(15,23,42,0.06)",
     marginBottom: "30px",
   },
-  topBar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "20px",
-    flexWrap: "wrap",
-    marginBottom: "18px",
+  eyebrow: {
+    margin: 0,
+    color: "#1d4ed8",
+    fontWeight: 700,
+    letterSpacing: "0.04em",
+    fontSize: "14px",
+    textTransform: "uppercase",
   },
   brandTitle: {
     fontSize: "38px",
-    margin: 0,
+    margin: "8px 0 0 0",
     color: "#111827",
     lineHeight: 1.15,
   },
@@ -419,9 +458,32 @@ const s = {
     border: "1px solid #cbd5e1",
     fontSize: "15px",
     outline: "none",
-    marginTop: "18px",
+    marginTop: "24px",
     background: "white",
     color: "#111827",
+  },
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "14px",
+    marginTop: "22px",
+  },
+  statCard: {
+    background: "#f8fafc",
+    border: "1px solid #dbe3ef",
+    borderRadius: "8px",
+    padding: "16px",
+  },
+  statNumber: {
+    fontSize: "26px",
+    fontWeight: 700,
+    color: "#0b1220",
+    margin: 0,
+  },
+  statLabel: {
+    color: "#475569",
+    margin: "4px 0 0 0",
+    fontSize: "14px",
   },
   title: {
     fontSize: "30px",
@@ -437,7 +499,7 @@ const s = {
   },
   featuredGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
     gap: "18px",
     marginTop: "18px",
   },
@@ -447,6 +509,24 @@ const s = {
     border: "1px solid #dbe3ef",
     padding: "22px",
     boxShadow: "0 6px 18px rgba(15,23,42,0.05)",
+  },
+  cardHeaderLine: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "start",
+    gap: "12px",
+    marginBottom: "10px",
+  },
+  iconBox: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "8px",
+    background: "#eef4ff",
+    border: "1px solid #bfdbfe",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "22px",
   },
   smallMuted: {
     color: "#475569",
@@ -568,19 +648,18 @@ const s = {
     marginTop: "18px",
     color: "#334155",
   },
-  pills: {
-    display: "flex",
-    gap: "10px",
-    flexWrap: "wrap",
-    marginTop: "22px",
+  sourceGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "18px",
+    marginTop: "18px",
   },
-  pill: {
-    padding: "9px 13px",
-    borderRadius: "999px",
-    border: "1px solid #dbeafe",
-    background: "#eff6ff",
-    fontSize: "14px",
-    color: "#1d4ed8",
+  sourceCard: {
+    background: "white",
+    borderRadius: "8px",
+    border: "1px solid #dbe3ef",
+    padding: "20px",
+    boxShadow: "0 6px 18px rgba(15,23,42,0.05)",
   },
 };
 
@@ -588,7 +667,7 @@ function Home({ onOpenArea, onOpenDataset }) {
   const [busquedaHome, setBusquedaHome] = useState("");
 
   const resultadosBusqueda = useMemo(() => {
-    if (!busquedaHome.trim()) return datasets.slice(0, 4);
+    if (!busquedaHome.trim()) return datasets;
 
     return datasets.filter((d) => {
       const texto = [
@@ -596,6 +675,8 @@ function Home({ onOpenArea, onOpenDataset }) {
         d.area,
         d.descripcion,
         d.contexto,
+        d.fuenteNombre,
+        d.formato,
         ...d.variables,
         ...d.tecnicas,
         ...d.preguntas,
@@ -610,41 +691,41 @@ function Home({ onOpenArea, onOpenDataset }) {
   return (
     <div>
       <div style={s.heroFormal}>
-        <div style={s.topBar}>
-          <div>
-            <p
-              style={{
-                margin: 0,
-                color: "#1d4ed8",
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-              }}
-            >
-              REPERTORIO DE BASES DE DATOS CHILENAS
-            </p>
-            <h1 style={s.brandTitle}>
-              Explora datasets reales para análisis estadístico
-            </h1>
-            <p style={s.brandText}>
-              Catálogo de bases de datos chilenas organizado por área, con contexto,
-              filtros, técnicas recomendadas, preguntas de investigación y scripts
-              base en R para comenzar a trabajar con datos reales.
-            </p>
-          </div>
-        </div>
+        <p style={s.eyebrow}>Repertorio de bases de datos chilenas</p>
+        <h1 style={s.brandTitle}>
+          Catálogo académico para análisis estadístico con datos reales
+        </h1>
+        <p style={s.brandText}>
+          Plataforma que reúne bases de datos chilenas organizadas por área,
+          fuente oficial, formato, variables disponibles y técnicas estadísticas
+          sugeridas. Cada ficha incluye contexto, preguntas de investigación y
+          un script base en R para iniciar la limpieza de los datos.
+        </p>
 
         <input
           style={s.searchBox}
-          placeholder="Busca datasets, áreas, variables o técnicas..."
+          placeholder="Buscar por nombre, área, fuente, variable o técnica..."
           value={busquedaHome}
           onChange={(e) => setBusquedaHome(e.target.value)}
         />
 
-        <div style={s.pills}>
-          <span style={s.pill}>Catálogo por áreas</span>
-          <span style={s.pill}>Filtros por tamaño</span>
-          <span style={s.pill}>Scripts en R</span>
-          <span style={s.pill}>Links de descarga</span>
+        <div style={s.statsGrid}>
+          <div style={s.statCard}>
+            <p style={s.statNumber}>{datasets.length}</p>
+            <p style={s.statLabel}>datasets incorporados</p>
+          </div>
+          <div style={s.statCard}>
+            <p style={s.statNumber}>{areas.length}</p>
+            <p style={s.statLabel}>áreas temáticas</p>
+          </div>
+          <div style={s.statCard}>
+            <p style={s.statNumber}>{fuentes.length}</p>
+            <p style={s.statLabel}>fuentes oficiales</p>
+          </div>
+          <div style={s.statCard}>
+            <p style={s.statNumber}>R</p>
+            <p style={s.statLabel}>scripts de limpieza</p>
+          </div>
         </div>
       </div>
 
@@ -654,18 +735,30 @@ function Home({ onOpenArea, onOpenDataset }) {
       <p style={s.sectionSubtitle}>
         {busquedaHome.trim()
           ? `Se encontraron ${resultadosBusqueda.length} resultado(s).`
-          : "Una selección inicial de bases disponibles."}
+          : "Bases incorporadas actualmente al repertorio."}
       </p>
 
       <div style={s.featuredGrid}>
         {resultadosBusqueda.map((d) => (
           <div key={d.id} style={s.featuredCard}>
-            <p style={{ margin: "0 0 8px 0", color: "#1d4ed8", fontWeight: 700 }}>
-              {d.area}
-            </p>
-            <h3 style={{ margin: "0 0 10px 0", fontSize: "22px", color: "#111827" }}>
-              {d.nombre}
-            </h3>
+            <div style={s.cardHeaderLine}>
+              <div>
+                <p style={{ margin: 0, color: "#1d4ed8", fontWeight: 700 }}>
+                  {d.area}
+                </p>
+                <h3
+                  style={{
+                    margin: "6px 0 8px 0",
+                    fontSize: "22px",
+                    color: "#111827",
+                  }}
+                >
+                  {d.nombre}
+                </h3>
+              </div>
+              <div style={s.iconBox}>{d.icono}</div>
+            </div>
+
             <p style={s.smallMuted}>{d.descripcion}</p>
 
             <div style={{ margin: "12px 0" }}>
@@ -678,23 +771,29 @@ function Home({ onOpenArea, onOpenDataset }) {
 
             <div style={s.meta}>
               <div>
+                <strong>Formato:</strong> {d.formato}
+              </div>
+              <div>
                 <strong>Tamaño:</strong> {d.tamano}
               </div>
               <div>
                 <strong>Variables:</strong> {d.variables.length}
               </div>
+              <div>
+                <strong>Fuente:</strong> {d.fuenteNombre}
+              </div>
             </div>
 
             <button style={s.button} onClick={() => onOpenDataset(d, "inicio")}>
-              Ver dataset
+              Ver ficha
             </button>
           </div>
         ))}
       </div>
 
-      <h2 style={{ ...s.title, marginTop: "38px" }}>Explorar por área</h2>
+      <h2 style={{ ...s.title, marginTop: "40px" }}>Explorar por área</h2>
       <p style={s.sectionSubtitle}>
-        Entra a una categoría específica para filtrar las bases según tamaño o técnica principal.
+        Entra a una categoría específica para filtrar bases según tamaño o técnica principal.
       </p>
 
       <div style={s.areasGrid}>
@@ -708,15 +807,41 @@ function Home({ onOpenArea, onOpenDataset }) {
                 marginBottom: "18px",
               }}
             />
-            <h3 style={{ fontSize: "24px", margin: "0 0 10px 0", color: "#111827" }}>
-              {area.nombre}
-            </h3>
-            <p style={{ color: "#475569", lineHeight: 1.6 }}>{area.descripcion}</p>
-            <div style={{ marginTop: "16px" }}>
-              <button style={s.button} onClick={() => onOpenArea(area.nombre)}>
-                Entrar al área
-              </button>
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={s.iconBox}>{area.icono}</div>
+              <h3
+                style={{
+                  fontSize: "24px",
+                  margin: 0,
+                  color: "#111827",
+                }}
+              >
+                {area.nombre}
+              </h3>
             </div>
+            <p style={{ color: "#475569", lineHeight: 1.6 }}>
+              {area.descripcion}
+            </p>
+            <button style={s.button} onClick={() => onOpenArea(area.nombre)}>
+              Entrar al área
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <h2 style={{ ...s.title, marginTop: "40px" }}>Fuentes oficiales</h2>
+      <p style={s.sectionSubtitle}>
+        Sitios desde donde provienen las bases incorporadas en el repertorio.
+      </p>
+
+      <div style={s.sourceGrid}>
+        {fuentes.map((fuente) => (
+          <div key={fuente.nombre} style={s.sourceCard}>
+            <h3 style={{ marginTop: 0 }}>{fuente.nombre}</h3>
+            <p style={s.smallMuted}>{fuente.descripcion}</p>
+            <a href={fuente.url} target="_blank" rel="noreferrer">
+              Abrir fuente oficial
+            </a>
           </div>
         ))}
       </div>
@@ -738,6 +863,8 @@ function AreaPage({ area, onBack, onOpenDataset }) {
           d.nombre,
           d.descripcion,
           d.contexto,
+          d.fuenteNombre,
+          d.formato,
           ...d.variables,
           ...d.tecnicas,
           ...d.preguntas,
@@ -760,13 +887,13 @@ function AreaPage({ area, onBack, onOpenDataset }) {
 
       <div style={s.layout}>
         <div style={s.sidebar}>
-          <h2 style={{ marginTop: 0, color: "#111827" }}>{area}</h2>
+          <h2 style={{ marginTop: 0 }}>{area}</h2>
           <p style={{ color: "#475569", fontSize: "14px", lineHeight: 1.6 }}>
             Filtra las bases según el tipo de análisis que buscas.
           </p>
 
           <div style={{ marginBottom: "16px" }}>
-            <strong style={{ color: "#111827" }}>Buscar</strong>
+            <strong>Buscar</strong>
             <input
               style={s.input}
               placeholder="Base, variable o técnica..."
@@ -776,8 +903,12 @@ function AreaPage({ area, onBack, onOpenDataset }) {
           </div>
 
           <div style={{ marginBottom: "16px" }}>
-            <strong style={{ color: "#111827" }}>Tamaño</strong>
-            <select style={s.input} value={tamano} onChange={(e) => setTamano(e.target.value)}>
+            <strong>Tamaño</strong>
+            <select
+              style={s.input}
+              value={tamano}
+              onChange={(e) => setTamano(e.target.value)}
+            >
               <option value="">Todos</option>
               {filtrosDisponibles.tamano.map((op) => (
                 <option key={op} value={op}>
@@ -788,8 +919,12 @@ function AreaPage({ area, onBack, onOpenDataset }) {
           </div>
 
           <div>
-            <strong style={{ color: "#111827" }}>Técnica principal</strong>
-            <select style={s.input} value={analisis} onChange={(e) => setAnalisis(e.target.value)}>
+            <strong>Técnica principal</strong>
+            <select
+              style={s.input}
+              value={analisis}
+              onChange={(e) => setAnalisis(e.target.value)}
+            >
               <option value="">Todas</option>
               {filtrosDisponibles.analisis.map((op) => (
                 <option key={op} value={op}>
@@ -802,16 +937,21 @@ function AreaPage({ area, onBack, onOpenDataset }) {
 
         <div>
           <div style={s.card}>
-            <h2 style={{ marginTop: 0, color: "#111827" }}>Bases disponibles</h2>
+            <h2 style={{ marginTop: 0 }}>Bases disponibles</h2>
             <p style={{ color: "#475569" }}>{filtrados.length} resultado(s)</p>
           </div>
 
           {filtrados.map((d) => (
             <div key={d.id} style={s.datasetCard}>
-              <h3 style={{ fontSize: "24px", marginTop: 0, color: "#111827" }}>
-                {d.nombre}
-              </h3>
-              <p style={{ color: "#475569", lineHeight: 1.6 }}>{d.descripcion}</p>
+              <div style={s.cardHeaderLine}>
+                <div>
+                  <h3 style={{ fontSize: "24px", margin: 0 }}>{d.nombre}</h3>
+                  <p style={{ color: "#475569", lineHeight: 1.6 }}>
+                    {d.descripcion}
+                  </p>
+                </div>
+                <div style={s.iconBox}>{d.icono}</div>
+              </div>
 
               <div>
                 {d.analisis.map((item) => (
@@ -823,10 +963,16 @@ function AreaPage({ area, onBack, onOpenDataset }) {
 
               <div style={s.meta}>
                 <div>
+                  <strong>Formato:</strong> {d.formato}
+                </div>
+                <div>
                   <strong>Tamaño:</strong> {d.tamano}
                 </div>
                 <div>
                   <strong>Variables:</strong> {d.variables.length}
+                </div>
+                <div>
+                  <strong>Fuente:</strong> {d.fuenteNombre}
                 </div>
               </div>
 
@@ -851,25 +997,29 @@ function DatasetPage({ dataset, onBack }) {
       </div>
 
       <div style={s.heroFormal}>
-        <div>
-          <div style={{ marginBottom: "12px" }}>
-            <span style={s.pill}>{dataset.area}</span>
-            <span style={{ ...s.pill, marginLeft: 8 }}>{dataset.nivel}</span>
+        <div style={s.cardHeaderLine}>
+          <div>
+            <p style={s.eyebrow}>{dataset.area}</p>
+            <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>
+              {dataset.nombre}
+            </h1>
+            <p style={s.brandText}>{dataset.contexto}</p>
           </div>
-          <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>{dataset.nombre}</h1>
-          <p style={s.brandText}>{dataset.contexto}</p>
+          <div style={s.iconBox}>{dataset.icono}</div>
         </div>
       </div>
 
       <div style={s.twoCol}>
         <div>
           <div style={s.card}>
-            <h2 style={{ marginTop: 0, color: "#111827" }}>Contexto</h2>
-            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.contexto}</p>
+            <h2 style={{ marginTop: 0 }}>Contexto</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>
+              {dataset.contexto}
+            </p>
           </div>
 
           <div style={{ ...s.card, marginTop: "18px" }}>
-            <h2 style={{ marginTop: 0, color: "#111827" }}>Código base en R</h2>
+            <h2 style={{ marginTop: 0 }}>Código base en R</h2>
             <p style={{ color: "#475569", marginTop: 0 }}>
               Script sugerido para filtrar y preparar la base. Está pensado para copiar y pegar.
             </p>
@@ -879,7 +1029,23 @@ function DatasetPage({ dataset, onBack }) {
 
         <div>
           <div style={s.card}>
-            <h2 style={{ marginTop: 0, color: "#111827" }}>Técnicas recomendadas</h2>
+            <h2 style={{ marginTop: 0 }}>Información del dataset</h2>
+            <p>
+              <strong>Área:</strong> {dataset.area}
+            </p>
+            <p>
+              <strong>Fuente:</strong> {dataset.fuenteNombre}
+            </p>
+            <p>
+              <strong>Formato:</strong> {dataset.formato}
+            </p>
+            <p>
+              <strong>Tamaño:</strong> {dataset.tamano}
+            </p>
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Técnicas recomendadas</h2>
             <div>
               {dataset.tecnicas.map((t) => (
                 <span key={t} style={s.badge}>
@@ -890,7 +1056,7 @@ function DatasetPage({ dataset, onBack }) {
           </div>
 
           <div style={{ ...s.card, marginTop: "18px" }}>
-            <h2 style={{ marginTop: 0, color: "#111827" }}>Variables clave</h2>
+            <h2 style={{ marginTop: 0 }}>Variables clave</h2>
             <div>
               {dataset.variables.map((v) => (
                 <span key={v} style={s.badge}>
@@ -901,7 +1067,7 @@ function DatasetPage({ dataset, onBack }) {
           </div>
 
           <div style={{ ...s.card, marginTop: "18px" }}>
-            <h2 style={{ marginTop: 0, color: "#111827" }}>Preguntas de investigación</h2>
+            <h2 style={{ marginTop: 0 }}>Preguntas de investigación</h2>
             <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
               {dataset.preguntas.map((p) => (
                 <li key={p}>{p}</li>
@@ -920,14 +1086,10 @@ function DatasetPage({ dataset, onBack }) {
             )}
 
             <p style={{ margin: "0 0 10px 0" }}>
-              <strong>Fuente original del sitio:</strong>{" "}
+              <strong>Fuente original:</strong>{" "}
               <a href={dataset.fuenteOriginal} target="_blank" rel="noreferrer">
                 Abrir sitio oficial
               </a>
-            </p>
-
-            <p style={{ margin: 0 }}>
-              <strong>Área:</strong> {dataset.area}
             </p>
           </div>
         </div>
@@ -945,10 +1107,26 @@ export default function App() {
   return (
     <div style={s.page}>
       <header style={s.header}>
-        <h1 style={s.headerTitle}>Repertorio de Bases de Datos Chilenas</h1>
-        <p style={s.headerSubtitle}>
-          Plataforma académica para consulta, descarga y preparación de datos reales.
-        </p>
+        <div>
+          <h1 style={s.headerTitle}>Repertorio de Bases de Datos Chilenas</h1>
+          <p style={s.headerSubtitle}>
+            Plataforma académica para consulta, descarga y preparación de datos reales.
+          </p>
+        </div>
+        <nav style={s.nav}>
+          <span style={s.navItem} onClick={() => setVista("inicio")}>
+            Inicio
+          </span>
+          <span style={s.navItem} onClick={() => setVista("inicio")}>
+            Datasets
+          </span>
+          <span style={s.navItem} onClick={() => setVista("inicio")}>
+            Áreas
+          </span>
+          <span style={s.navItem} onClick={() => setVista("inicio")}>
+            Fuentes
+          </span>
+        </nav>
       </header>
 
       <main style={s.mainWrap}>

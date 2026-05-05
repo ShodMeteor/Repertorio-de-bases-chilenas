@@ -723,23 +723,1055 @@ pib_regional$region <- factor(pib_regional$region)
 head(pib_regional)
 summary(pib_regional)`,
   },
+
+  {
+    id: "rem20-indicadores-hospitalarios",
+    nombre: "REM20 indicadores hospitalarios",
+    area: "Salud",
+    icono: "🏥",
+    formato: "CSV",
+    tamano: "Grande",
+    analisis: ["Exploratorio", "ANOVA", "Regresión lineal", "Análisis temporal básico"],
+    fuenteNombre: "MINSAL / DEIS",
+    unidad: "Establecimiento-área funcional-mes",
+    descripcion:
+      "Indicadores hospitalarios mensuales por establecimiento y área funcional, incluyendo camas, egresos, días de estadía, letalidad e índice ocupacional.",
+    contexto:
+      "Esta base permite estudiar el funcionamiento hospitalario a partir de indicadores agregados por establecimiento, servicio de salud, área funcional y mes. Es útil para analizar ocupación de camas, egresos, días de estadía, letalidad y rotación. Al estar organizada de forma mensual, también permite hacer análisis temporal básico sin entrar directamente en modelos de series de tiempo.",
+    usos:
+      "Puede utilizarse para análisis exploratorio, comparación entre establecimientos, comparación entre áreas funcionales, ANOVA, regresión lineal y gráficos temporales por mes o año.",
+    tecnicas: [
+      "Tablas descriptivas",
+      "Boxplots por área funcional",
+      "Gráficos por mes",
+      "ANOVA",
+      "Regresión lineal",
+      "Análisis temporal básico",
+    ],
+    preguntas: [
+      "¿Qué áreas funcionales presentan mayor promedio de días de estadía?",
+      "¿Existen diferencias en el índice ocupacional entre servicios de salud?",
+      "¿Cómo evoluciona el número de egresos por mes?",
+      "¿La letalidad varía según área funcional o establecimiento?",
+    ],
+    variables: [
+      "PERIODO",
+      "GLOSA_SSS",
+      "ESTABLECIMIENTO",
+      "AREA_FUNCIONAL",
+      "MES",
+      "DIAS_CAMAS_OCUPADAS",
+      "DIAS_CAMAS_DISPONIBLES",
+      "DIAS_ESTADA",
+      "NUMERO_EGRESOS",
+      "EGRESOS_FALLECIDOS",
+      "INDICE_OCUPACIONAL",
+      "PROMEDIO_DIAS_ESTADA",
+      "LETALIDAD",
+    ],
+    descarga: "/archivos/indicadores_rem20_20260425.csv",
+    fuenteOriginal: "https://datos.gob.cl",
+    script: `datos <- read.csv("indicadores_rem20_20260425.csv",
+                  sep = ";",
+                  encoding = "UTF-8",
+                  stringsAsFactors = FALSE)
+
+# Seleccionar variables principales para comenzar el análisis
+rem20 <- datos[, c(
+  "PERIODO",
+  "GLOSA_SSS",
+  "CODIGO_ESTABLECIMIENTO",
+  "ESTABLECIMIENTO",
+  "AREA_FUNCIONAL",
+  "MES",
+  "DIAS_CAMAS_OCUPADAS",
+  "DIAS_CAMAS_DISPONIBLES",
+  "DIAS_ESTADA",
+  "NUMERO_EGRESOS",
+  "EGRESOS_FALLECIDOS",
+  "INDICE_OCUPACIONAL",
+  "PROMEDIO_CAMAS_DISPONIBLE",
+  "PROMEDIO_DIAS_ESTADA",
+  "LETALIDAD",
+  "INDICE_ROTACION"
+)]
+
+# Función para transformar variables numéricas que puedan venir como texto
+limpiar_numero <- function(x) {
+  x <- as.character(x)
+  x <- gsub(",", ".", x)
+  x[x == ""] <- NA
+  as.numeric(x)
+}
+
+# Convertir variables numéricas
+vars_num <- c("DIAS_CAMAS_OCUPADAS", "DIAS_CAMAS_DISPONIBLES", "DIAS_ESTADA",
+              "NUMERO_EGRESOS", "EGRESOS_FALLECIDOS", "INDICE_OCUPACIONAL",
+              "PROMEDIO_CAMAS_DISPONIBLE", "PROMEDIO_DIAS_ESTADA",
+              "LETALIDAD", "INDICE_ROTACION")
+
+for (v in vars_num) {
+  rem20[[v]] <- limpiar_numero(rem20[[v]])
+}
+
+# Filtrar filas con información básica válida
+rem20 <- subset(rem20,
+                !is.na(PERIODO) &
+                !is.na(MES) &
+                !is.na(ESTABLECIMIENTO) &
+                !is.na(AREA_FUNCIONAL) &
+                !is.na(NUMERO_EGRESOS))
+
+# Filtrar valores coherentes
+rem20 <- subset(rem20,
+                MES >= 1 & MES <= 12 &
+                NUMERO_EGRESOS >= 0 &
+                DIAS_ESTADA >= 0)
+
+# Crear fecha mensual aproximada
+rem20$fecha_mes <- as.Date(paste(rem20$PERIODO, rem20$MES, "01", sep = "-"))
+
+# Convertir variables categóricas
+rem20$GLOSA_SSS <- factor(rem20$GLOSA_SSS)
+rem20$ESTABLECIMIENTO <- factor(rem20$ESTABLECIMIENTO)
+rem20$AREA_FUNCIONAL <- factor(rem20$AREA_FUNCIONAL)
+rem20$MES <- factor(rem20$MES)
+
+head(rem20)
+summary(rem20)`,
+  },
+
+  {
+    id: "precios-mayoristas-frutas-hortalizas-2026",
+    nombre: "Precios mayoristas de frutas y hortalizas 2026",
+    area: "Agricultura",
+    icono: "🍎",
+    formato: "CSV",
+    tamano: "Grande",
+    analisis: ["Exploratorio", "ANOVA", "Regresión lineal", "Análisis temporal básico"],
+    fuenteNombre: "ODEPA",
+    unidad: "Registro de precio por producto-mercado-fecha",
+    descripcion:
+      "Precios mayoristas de frutas, hortalizas y tubérculos por fecha, región, mercado, producto, variedad, calidad, origen, volumen y precio.",
+    contexto:
+      "Esta base permite estudiar el comportamiento de precios mayoristas agrícolas en Chile durante 2026. Es útil para comparar productos, mercados, regiones y fechas, además de analizar la variabilidad del precio promedio según producto, origen o calidad. También permite trabajar con datos reales de precios, donde aparecen variables numéricas, categóricas y temporales.",
+    usos:
+      "Puede utilizarse para análisis exploratorio, comparación de precios por producto o región, ANOVA, regresión lineal simple y análisis temporal básico por fecha.",
+    tecnicas: [
+      "Tablas por producto",
+      "Boxplots por región",
+      "Gráficos temporales",
+      "ANOVA",
+      "Regresión lineal",
+    ],
+    preguntas: [
+      "¿Qué productos presentan mayor precio promedio?",
+      "¿Existen diferencias de precios entre regiones o mercados?",
+      "¿El volumen comercializado se relaciona con el precio promedio?",
+      "¿Cómo cambia el precio de un producto durante el año?",
+    ],
+    variables: [
+      "Fecha",
+      "Region",
+      "Mercado",
+      "Subsector",
+      "Producto",
+      "Variedad / Tipo",
+      "Calidad",
+      "Origen",
+      "Volumen",
+      "Precio minimo",
+      "Precio maximo",
+      "Precio promedio",
+    ],
+    descarga: "/archivos/precio_mayorista_fruta-hortaliza_2026.csv",
+    fuenteOriginal: "https://www.odepa.gob.cl/precios",
+    script: `datos <- read.csv("precio_mayorista_fruta-hortaliza_2026.csv",
+                  sep = ",",
+                  encoding = "UTF-8",
+                  stringsAsFactors = FALSE,
+                  check.names = FALSE)
+
+# Seleccionar variables principales
+precios <- datos[, c(
+  "Fecha",
+  "ID region",
+  "Region",
+  "Mercado",
+  "Subsector",
+  "Producto",
+  "Variedad / Tipo",
+  "Calidad",
+  "Unidad de comercializacion",
+  "Origen",
+  "Volumen",
+  "Precio minimo",
+  "Precio maximo",
+  "Precio promedio"
+)]
+
+# Función para limpiar números con coma decimal
+limpiar_numero <- function(x) {
+  x <- as.character(x)
+  x <- gsub("\\.", "", x)
+  x <- gsub(",", ".", x)
+  x[x == ""] <- NA
+  as.numeric(x)
+}
+
+# Transformar fecha y variables numéricas
+precios$Fecha <- as.Date(precios$Fecha)
+precios$Volumen <- limpiar_numero(precios$Volumen)
+precios$precio_minimo <- limpiar_numero(precios[["Precio minimo"]])
+precios$precio_maximo <- limpiar_numero(precios[["Precio maximo"]])
+precios$precio_promedio <- limpiar_numero(precios[["Precio promedio"]])
+
+# Filtrar datos válidos
+precios <- subset(precios,
+                  !is.na(Fecha) &
+                  !is.na(Region) &
+                  !is.na(Mercado) &
+                  !is.na(Producto) &
+                  !is.na(precio_promedio) &
+                  precio_promedio >= 0)
+
+# Crear variables temporales
+precios$anio <- format(precios$Fecha, "%Y")
+precios$mes <- format(precios$Fecha, "%m")
+
+# Convertir variables categóricas
+precios$Region <- factor(precios$Region)
+precios$Mercado <- factor(precios$Mercado)
+precios$Subsector <- factor(precios$Subsector)
+precios$Producto <- factor(precios$Producto)
+precios$Calidad <- factor(precios$Calidad)
+precios$Origen <- factor(precios$Origen)
+precios$mes <- factor(precios$mes)
+
+head(precios)
+summary(precios)`,
+  },
+
+  {
+    id: "precio-uva-vinificacion-2026",
+    nombre: "Precio uva de vinificación 2026",
+    area: "Agricultura",
+    icono: "🍇",
+    formato: "CSV",
+    tamano: "Pequeña",
+    analisis: ["Exploratorio", "ANOVA", "Regresión lineal"],
+    fuenteNombre: "ODEPA",
+    unidad: "Registro de precio por variedad-comuna-fecha",
+    descripcion:
+      "Precios de uva de vinificación por región, comuna, poder comprador, variedad, precio y grado brix.",
+    contexto:
+      "Esta base es más específica que la de precios mayoristas, pero sirve para trabajar con un caso agrícola concreto. Permite comparar precios de uva de vinificación según región, comuna, variedad y poder comprador. También permite estudiar la relación entre grado brix y precio, lo que puede motivar ejercicios de regresión lineal simple.",
+    usos:
+      "Puede utilizarse para análisis exploratorio, comparación de precios por variedad, ANOVA por región o variedad y regresión lineal entre grado brix y precio.",
+    tecnicas: [
+      "Tablas por variedad",
+      "Boxplots por región",
+      "Boxplots por variedad",
+      "ANOVA",
+      "Regresión lineal",
+    ],
+    preguntas: [
+      "¿Qué variedades tienen mayor precio promedio?",
+      "¿Existen diferencias de precio entre regiones o comunas?",
+      "¿El grado brix se relaciona con el precio?",
+      "¿Qué poder comprador registra mayores precios?",
+    ],
+    variables: [
+      "Anio",
+      "Mes",
+      "Fecha precio vigente",
+      "Region",
+      "Comuna",
+      "Poder comprador",
+      "Variedad",
+      "Precio",
+      "Grado brix",
+    ],
+    descarga: "/archivos/precio_uva_vinificacion_2026.csv",
+    fuenteOriginal: "https://www.odepa.gob.cl/precios",
+    script: `datos <- read.csv("precio_uva_vinificacion_2026.csv",
+                  sep = ",",
+                  encoding = "UTF-8",
+                  stringsAsFactors = FALSE,
+                  check.names = FALSE)
+
+# Seleccionar variables principales
+uva <- datos[, c(
+  "Anio",
+  "Mes",
+  "Fecha precio vigente",
+  "ID region",
+  "Region",
+  "Comuna",
+  "Poder comprador",
+  "Variedad",
+  "Precio",
+  "Grado brix"
+)]
+
+# Función para limpiar números
+limpiar_numero <- function(x) {
+  x <- as.character(x)
+  x <- gsub(",", ".", x)
+  x[x == ""] <- NA
+  as.numeric(x)
+}
+
+# Transformar variables
+uva$fecha <- as.Date(uva[["Fecha precio vigente"]])
+uva$precio <- limpiar_numero(uva$Precio)
+uva$grado_brix <- limpiar_numero(uva[["Grado brix"]])
+
+# Filtrar registros válidos
+uva <- subset(uva,
+              !is.na(fecha) &
+              !is.na(Region) &
+              !is.na(Comuna) &
+              !is.na(Variedad) &
+              !is.na(precio) &
+              precio >= 0)
+
+# Convertir variables categóricas
+uva$Region <- factor(uva$Region)
+uva$Comuna <- factor(uva$Comuna)
+uva[["Poder comprador"]] <- factor(uva[["Poder comprador"]])
+uva$Variedad <- factor(uva$Variedad)
+uva$Mes <- factor(uva$Mes)
+
+head(uva)
+summary(uva)`,
+  },
+
+  {
+    id: "temperaturas-diarias-estaciones-2012",
+    nombre: "Temperaturas diarias por estaciones 2012",
+    area: "Medio ambiente",
+    icono: "🌡️",
+    formato: "CSV",
+    tamano: "Mediana",
+    analisis: ["Exploratorio", "ANOVA", "Análisis temporal básico", "Regresión lineal"],
+    fuenteNombre: "Dirección Meteorológica de Chile / Datos.gob.cl",
+    unidad: "Estación-día",
+    descripcion:
+      "Temperaturas mínimas y máximas diarias registradas por estaciones meteorológicas durante 2012.",
+    contexto:
+      "Esta base permite estudiar temperaturas diarias por estación meteorológica. Incluye ubicación de la estación, fecha y temperaturas mínima y máxima. Es útil para comparar estaciones, meses o zonas, además de trabajar con variables temporales simples sin necesidad de entrar en series de tiempo avanzadas.",
+    usos:
+      "Puede utilizarse para histogramas de temperatura, boxplots por mes o estación, comparación entre estaciones, ANOVA y regresión lineal simple entre temperatura mínima y máxima.",
+    tecnicas: [
+      "Histogramas",
+      "Boxplots por mes",
+      "Boxplots por estación",
+      "ANOVA",
+      "Regresión lineal",
+      "Análisis temporal básico",
+    ],
+    preguntas: [
+      "¿Qué estaciones presentan mayores temperaturas máximas?",
+      "¿Existen diferencias de temperatura entre meses?",
+      "¿Qué relación hay entre temperatura mínima y máxima?",
+      "¿Cómo cambia la temperatura durante el año?",
+    ],
+    variables: [
+      "IdEstacion",
+      "Nombre Estacion",
+      "Latitud",
+      "Longitud",
+      "Altura",
+      "Año",
+      "Mes",
+      "Dia",
+      "TMinima",
+      "TMaxima",
+      "fecha",
+    ],
+    descarga: "/archivos/temperaturasDiariasPorEstaciones2012.csv",
+    fuenteOriginal: "https://datos.gob.cl",
+    script: `datos <- read.csv("temperaturasDiariasPorEstaciones2012.csv",
+                  sep = ";",
+                  encoding = "UTF-8",
+                  stringsAsFactors = FALSE,
+                  check.names = FALSE)
+
+# Seleccionar variables principales
+temperaturas <- datos[, c(
+  "IdEstacion",
+  "Nombre Estacion",
+  "Latitud",
+  "Longitud",
+  "Altura",
+  "Año",
+  "Mes",
+  "Dia",
+  "TMinima",
+  "TMaxima"
+)]
+
+# Convertir variables numéricas
+temperaturas$TMinima <- as.numeric(temperaturas$TMinima)
+temperaturas$TMaxima <- as.numeric(temperaturas$TMaxima)
+temperaturas$Altura <- as.numeric(temperaturas$Altura)
+
+# Crear fecha
+temperaturas$fecha <- as.Date(paste(temperaturas$Año, temperaturas$Mes, temperaturas$Dia, sep = "-"))
+
+# Filtrar registros válidos
+temperaturas <- subset(temperaturas,
+                       !is.na(fecha) &
+                       !is.na(temperaturas[["Nombre Estacion"]]) &
+                       !is.na(TMinima) &
+                       !is.na(TMaxima))
+
+# Filtrar valores coherentes generales
+temperaturas <- subset(temperaturas,
+                       TMinima > -50 & TMinima < 60 &
+                       TMaxima > -50 & TMaxima < 60 &
+                       TMaxima >= TMinima)
+
+# Crear variables temporales
+temperaturas$mes <- factor(temperaturas$Mes,
+                           levels = 1:12,
+                           labels = c("Ene", "Feb", "Mar", "Abr", "May", "Jun",
+                                      "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"))
+
+temperaturas[["Nombre Estacion"]] <- factor(temperaturas[["Nombre Estacion"]])
+
+head(temperaturas)
+summary(temperaturas)`,
+  },
+
+  {
+    id: "ruea-emisiones-transporte-2024",
+    nombre: "Emisiones de transporte 2024",
+    area: "Medio ambiente",
+    icono: "🚗",
+    formato: "CSV",
+    tamano: "Mediana",
+    analisis: ["Exploratorio", "ANOVA", "Regresión lineal"],
+    fuenteNombre: "MMA / Datos.gob.cl",
+    unidad: "Comuna-contaminante-tipo de vehículo",
+    descripcion:
+      "Emisiones del transporte por comuna, ciudad, contaminante, tipo de vehículo, tipo de emisión y toneladas emitidas.",
+    contexto:
+      "Esta base permite estudiar emisiones asociadas al transporte en Chile. Incluye información por comuna, ciudad, contaminante, tipo de vehículo y tipo de emisión. Es útil para comparar qué ciudades o tipos de vehículos concentran mayores emisiones, y para trabajar preguntas ambientales con datos agregados.",
+    usos:
+      "Puede utilizarse para análisis exploratorio, ranking de emisiones por ciudad, comparación por contaminante, ANOVA por tipo de vehículo y regresión lineal simple con toneladas emitidas.",
+    tecnicas: [
+      "Tablas por ciudad",
+      "Gráficos de barras",
+      "Boxplots por tipo de vehículo",
+      "ANOVA",
+      "Regresión lineal",
+    ],
+    preguntas: [
+      "¿Qué ciudades presentan mayores emisiones de transporte?",
+      "¿Qué contaminantes concentran más toneladas emitidas?",
+      "¿Existen diferencias por tipo de vehículo?",
+      "¿Qué tipo de emisión es más relevante según contaminante?",
+    ],
+    variables: [
+      "id_comuna",
+      "año",
+      "cantidad_toneladas",
+      "contaminantes",
+      "tipo_vehiculo",
+      "tipo_emision",
+      "ciudad",
+    ],
+    descarga: "/archivos/ruea-tr-2024-ckan_mejora.csv",
+    fuenteOriginal: "https://datos.gob.cl",
+    script: `datos <- read.csv("ruea-tr-2024-ckan_mejora.csv",
+                  sep = ";",
+                  encoding = "UTF-8",
+                  stringsAsFactors = FALSE,
+                  check.names = FALSE)
+
+# Seleccionar variables principales
+emisiones <- datos[, c(
+  "id_comuna",
+  "año",
+  "cantidad_toneladas",
+  "id_contaminantes",
+  "contaminantes",
+  "tipo_vehiculo",
+  "tipo_emision",
+  "ciudad"
+)]
+
+# Limpiar toneladas emitidas
+emisiones$cantidad_toneladas <- as.character(emisiones$cantidad_toneladas)
+emisiones$cantidad_toneladas <- gsub(",", ".", emisiones$cantidad_toneladas)
+emisiones$cantidad_toneladas <- as.numeric(emisiones$cantidad_toneladas)
+
+# Filtrar registros válidos
+emisiones <- subset(emisiones,
+                    !is.na(ciudad) &
+                    !is.na(contaminantes) &
+                    !is.na(tipo_vehiculo) &
+                    !is.na(tipo_emision) &
+                    !is.na(cantidad_toneladas) &
+                    cantidad_toneladas >= 0)
+
+# Convertir variables categóricas
+emisiones$ciudad <- factor(emisiones$ciudad)
+emisiones$contaminantes <- factor(emisiones$contaminantes)
+emisiones$tipo_vehiculo <- factor(emisiones$tipo_vehiculo)
+emisiones$tipo_emision <- factor(emisiones$tipo_emision)
+emisiones$año <- factor(emisiones$año)
+
+head(emisiones)
+summary(emisiones)`,
+  }
 ];
+
 
 const areas = [
   { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
   { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
-  { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad y acceso a servicios de salud.", color: "#be123c" },
+  { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores del sistema de salud.", color: "#be123c" },
   { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
   { nombre: "Economía", icono: "💰", descripcion: "Bases para PIB regional, actividad económica e indicadores macroeconómicos.", color: "#b45309" },
-  { nombre: "Medio ambiente", icono: "🌱", descripcion: "Bases para calidad del aire y análisis ambiental.", color: "#15803d" },
+  { nombre: "Agricultura", icono: "🍎", descripcion: "Bases para precios agrícolas, productos, mercados y comparación regional.", color: "#ca8a04" },
+  { nombre: "Medio ambiente", icono: "🌱", descripcion: "Bases para calidad del aire, clima, temperaturas y emisiones ambientales.", color: "#15803d" },
 ];
 
 const fuentes = [
   { nombre: "Agencia de Calidad de la Educación", descripcion: "Bases educativas oficiales.", url: "https://informacionestadistica.agenciaeducacion.cl/#/bases" },
   { nombre: "Observatorio Social", descripcion: "Información oficial de CASEN.", url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024" },
   { nombre: "DEIS / MINSAL", descripcion: "Datos abiertos de salud, como egresos hospitalarios y estadísticas sanitarias.", url: "https://deis.minsal.cl/#datos-abiertos" },
-  { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado, incluyendo datos del Ministerio de Salud.", url: "https://datos.gob.cl" },
+  { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado, incluyendo salud, clima y medio ambiente.", url: "https://datos.gob.cl" },
   { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
   { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
+  { nombre: "ODEPA", descripcion: "Información de precios agrícolas, frutas, hortalizas y productos vitivinícolas.", url: "https://www.odepa.gob.cl/precios" },
   { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
 ];
+
+const ejercicios = [
+  {
+    id: "eda-simce",
+    tema: "Análisis exploratorio",
+    icono: "📈",
+    base: "SIMCE 2° medio 2024",
+    objetivo:
+      "Describir la distribución de los puntajes de Matemática y Lectura y compararlos por tipo de establecimiento.",
+    instrucciones: [
+      "Cargar y limpiar la base SIMCE.",
+      "Seleccionar puntajes de Matemática, Lectura y dependencia.",
+      "Crear histogramas y boxplots.",
+      "Escribir una interpretación breve.",
+    ],
+    codigo: `datos <- read.csv("simce2m2024_rbd_preliminar.csv",
+                  sep = ";",
+                  encoding = "latin1")
+
+datos <- subset(datos,
+                prom_mate2m_rbd > 0 &
+                prom_lect2m_rbd > 0)
+
+datos$tipo_colegio <- factor(datos$cod_depe2,
+                             levels = c(1, 2, 3, 4),
+                             labels = c("Municipal",
+                                        "Subvencionado",
+                                        "Particular_Pagado",
+                                        "Administracion_Delegada"))
+
+hist(datos$prom_mate2m_rbd,
+     main = "Distribución puntaje Matemática",
+     xlab = "Puntaje Matemática")
+
+boxplot(prom_mate2m_rbd ~ tipo_colegio,
+        data = datos,
+        main = "Matemática por tipo de colegio",
+        xlab = "Tipo de colegio",
+        ylab = "Puntaje")`,
+  },
+  {
+    id: "anova-aire",
+    tema: "ANOVA",
+    icono: "📊",
+    base: "Calidad del aire - Cerrillos",
+    objetivo:
+      "Comparar si los registros validados presentan diferencias entre meses.",
+    instrucciones: [
+      "Cargar la base limpia de calidad del aire.",
+      "Definir registros validados como variable respuesta.",
+      "Definir mes como factor.",
+      "Ajustar un modelo ANOVA e interpretar.",
+    ],
+    codigo: `datos <- read.csv("datos_final_aire_limpios.csv",
+                  sep = ",",
+                  header = TRUE)
+
+datos$mes <- factor(datos$mes)
+
+modelo <- aov(reg_validos ~ mes, data = datos)
+
+summary(modelo)
+
+boxplot(reg_validos ~ mes,
+        data = datos,
+        main = "Registros validados por mes",
+        xlab = "Mes",
+        ylab = "Registros validados")`,
+  },
+  {
+    id: "regresion-casen",
+    tema: "Regresión lineal",
+    icono: "📉",
+    base: "CASEN 2024",
+    objetivo:
+      "Estudiar la relación entre años de escolaridad e ingreso total.",
+    instrucciones: [
+      "Cargar CASEN.",
+      "Seleccionar escolaridad e ingreso.",
+      "Filtrar datos válidos.",
+      "Ajustar una regresión lineal simple.",
+    ],
+    codigo: `load("casen_2024")
+
+datos <- casen_2024[, c("esc", "ytot")]
+
+datos <- subset(datos,
+                !is.na(esc) &
+                !is.na(ytot) &
+                esc >= 0 &
+                ytot > 0)
+
+modelo <- lm(ytot ~ esc, data = datos)
+
+summary(modelo)
+
+plot(datos$esc, datos$ytot,
+     xlab = "Años de escolaridad",
+     ylab = "Ingreso total")
+
+abline(modelo)`,
+  },
+];
+
+const filtrosDisponibles = {
+  tamano: ["Pequeña", "Mediana", "Grande"],
+  analisis: ["Exploratorio", "t-test", "ANOVA", "Regresión", "Correlación", "Análisis temporal básico"],
+};
+
+const s = {
+  page: { minHeight: "100vh", background: "#f5f7fb", fontFamily: "Arial, Helvetica, sans-serif", color: "#111827" },
+  header: { background: "#0b1220", color: "white", padding: "18px 56px", borderBottom: "4px solid #1d4ed8", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" },
+  headerTitle: { margin: 0, fontSize: "22px", fontWeight: 700 },
+  headerSubtitle: { margin: "5px 0 0 0", color: "#cbd5e1", fontSize: "14px" },
+  nav: { display: "flex", gap: "18px", fontSize: "14px" },
+  navItem: { color: "#e5e7eb", cursor: "pointer" },
+  mainWrap: { width: "100%", padding: "34px 56px" },
+  heroFormal: { background: "white", borderRadius: "8px", border: "1px solid #dbe3ef", padding: "38px 44px", boxShadow: "0 6px 18px rgba(15,23,42,0.06)", marginBottom: "30px" },
+  eyebrow: { margin: 0, color: "#1d4ed8", fontWeight: 700, letterSpacing: "0.04em", fontSize: "14px", textTransform: "uppercase" },
+  brandTitle: { fontSize: "38px", margin: "8px 0 0 0", color: "#111827", lineHeight: 1.15 },
+  brandText: { color: "#334155", fontSize: "17px", lineHeight: 1.7, maxWidth: "1000px", marginTop: "12px" },
+  searchBox: { width: "100%", padding: "15px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "15px", outline: "none", marginTop: "24px" },
+  statsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "14px", marginTop: "22px" },
+  statCard: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "16px" },
+  statNumber: { fontSize: "26px", fontWeight: 700, color: "#0b1220", margin: 0 },
+  statLabel: { color: "#475569", margin: "4px 0 0 0", fontSize: "14px" },
+  title: { fontSize: "30px", margin: "10px 0 8px 0", fontWeight: 700 },
+  sectionSubtitle: { color: "#475569", marginTop: 0, marginBottom: "20px", fontSize: "16px" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "18px", marginTop: "18px" },
+  card: { background: "white", borderRadius: "8px", border: "1px solid #dbe3ef", padding: "24px", boxShadow: "0 6px 18px rgba(15,23,42,0.05)" },
+  iconBox: { width: "42px", height: "42px", borderRadius: "8px", background: "#eef4ff", border: "1px solid #bfdbfe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" },
+  smallMuted: { color: "#475569", fontSize: "14px", lineHeight: 1.6 },
+  badge: { display: "inline-block", padding: "7px 12px", borderRadius: "999px", background: "#eef4ff", border: "1px solid #bfdbfe", color: "#1d4ed8", fontSize: "13px", marginRight: "8px", marginBottom: "8px" },
+  button: { background: "#0b1220", color: "white", border: "none", borderRadius: "6px", padding: "11px 15px", cursor: "pointer", fontWeight: 700 },
+  buttonAlt: { background: "white", color: "#0b1220", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "11px 15px", cursor: "pointer", fontWeight: 700 },
+  meta: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", color: "#334155", fontSize: "14px", margin: "14px 0" },
+  layout: { display: "grid", gridTemplateColumns: "300px 1fr", gap: "22px", alignItems: "start" },
+  sidebar: { background: "white", borderRadius: "8px", border: "1px solid #dbe3ef", padding: "22px", boxShadow: "0 6px 18px rgba(15,23,42,0.05)", position: "sticky", top: "20px" },
+  input: { width: "100%", padding: "12px 14px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px", marginTop: "8px" },
+  twoCol: { display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "22px", alignItems: "start" },
+  pre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "22px", fontSize: "14px", lineHeight: 1.6, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace" },
+  linkBox: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "16px", marginTop: "18px", color: "#334155" },
+};
+
+function Home({ onOpenArea, onOpenDataset, onOpenExercise }) {
+  const [busquedaHome, setBusquedaHome] = useState("");
+
+  const resultadosBusqueda = useMemo(() => {
+    if (!busquedaHome.trim()) return datasets;
+    return datasets.filter((d) =>
+      [d.nombre, d.area, d.descripcion, d.contexto, d.fuenteNombre, d.formato, ...d.variables, ...d.tecnicas, ...d.preguntas]
+        .join(" ")
+        .toLowerCase()
+        .includes(busquedaHome.toLowerCase())
+    );
+  }, [busquedaHome]);
+
+  return (
+    <div>
+      <div style={s.heroFormal}>
+        <p style={s.eyebrow}>Repertorio de bases de datos chilenas</p>
+        <h1 style={s.brandTitle}>Catálogo académico para análisis estadístico con datos reales</h1>
+        <p style={s.brandText}>
+          Plataforma que reúne bases de datos chilenas organizadas por área, fuente oficial, formato,
+          variables disponibles y técnicas estadísticas sugeridas. Cada ficha incluye contexto,
+          preguntas de investigación y un script base en R para iniciar la limpieza de los datos.
+        </p>
+
+        <input
+          style={s.searchBox}
+          placeholder="Buscar por nombre, área, fuente, variable o técnica..."
+          value={busquedaHome}
+          onChange={(e) => setBusquedaHome(e.target.value)}
+        />
+
+        <div style={s.statsGrid}>
+          <div style={s.statCard}><p style={s.statNumber}>{datasets.length}</p><p style={s.statLabel}>datasets incorporados</p></div>
+          <div style={s.statCard}><p style={s.statNumber}>{areas.length}</p><p style={s.statLabel}>áreas temáticas</p></div>
+          <div style={s.statCard}><p style={s.statNumber}>{fuentes.length}</p><p style={s.statLabel}>fuentes oficiales</p></div>
+          <div style={s.statCard}><p style={s.statNumber}>{ejercicios.length}</p><p style={s.statLabel}>ejercicios sugeridos</p></div>
+        </div>
+      </div>
+
+      <h2 style={s.title}>Sobre el repertorio</h2>
+      <p style={s.sectionSubtitle}>Apoyo inicial para estudiantes que necesitan trabajar con datos reales.</p>
+      <div style={s.card}>
+        <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+          El objetivo del repertorio es reunir bases de datos chilenas que puedan ser utilizadas
+          en cursos introductorios e intermedios de estadística. Cada ficha entrega contexto,
+          variables relevantes, preguntas posibles y un código inicial de limpieza. La idea no
+          es entregar el análisis completo, sino facilitar el punto de partida para que cada
+          estudiante formule su propia pregunta, realice el análisis correspondiente e interprete
+          sus resultados.
+        </p>
+      </div>
+
+      <h2 id="datasets" style={{ ...s.title, marginTop: "40px" }}>
+        {busquedaHome.trim() ? "Resultados de búsqueda" : "Datasets destacados"}
+      </h2>
+      <p style={s.sectionSubtitle}>
+        {busquedaHome.trim() ? `Se encontraron ${resultadosBusqueda.length} resultado(s).` : "Bases incorporadas actualmente al repertorio."}
+      </p>
+
+      <div style={s.grid}>
+        {resultadosBusqueda.map((d) => (
+          <div key={d.id} style={s.card}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+              <div>
+                <p style={{ margin: 0, color: "#1d4ed8", fontWeight: 700 }}>{d.area}</p>
+                <h3 style={{ margin: "6px 0 8px 0", fontSize: "22px" }}>{d.nombre}</h3>
+              </div>
+              <div style={s.iconBox}>{d.icono}</div>
+            </div>
+            <p style={s.smallMuted}>{d.descripcion}</p>
+            <div style={{ margin: "12px 0" }}>
+              {d.analisis.slice(0, 3).map((item) => <span key={item} style={s.badge}>{item}</span>)}
+            </div>
+            <div style={s.meta}>
+              <div><strong>Formato:</strong> {d.formato}</div>
+              <div><strong>Tamaño:</strong> {d.tamano}</div>
+              <div><strong>Variables:</strong> {d.variables.length}</div>
+              <div><strong>Fuente:</strong> {d.fuenteNombre}</div>
+            </div>
+            <button style={s.button} onClick={() => onOpenDataset(d, "inicio")}>Ver ficha</button>
+          </div>
+        ))}
+      </div>
+
+      <h2 id="ejercicios" style={{ ...s.title, marginTop: "40px" }}>Ejercicios sugeridos</h2>
+      <p style={s.sectionSubtitle}>Ejercicios organizados por tema. Cada uno puede abrirse como guía completa.</p>
+      <div style={s.grid}>
+        {ejercicios.map((e) => (
+          <div key={e.id} style={s.card}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={s.iconBox}>{e.icono}</div>
+              <h3 style={{ margin: 0 }}>{e.tema}</h3>
+            </div>
+            <p style={s.smallMuted}>{e.objetivo}</p>
+            <button style={s.button} onClick={() => onOpenExercise(e)}>Ver ejercicio completo</button>
+          </div>
+        ))}
+      </div>
+
+      <h2 id="areas" style={{ ...s.title, marginTop: "40px" }}>Explorar por área</h2>
+      <p style={s.sectionSubtitle}>Entra a una categoría específica para filtrar bases según tamaño o técnica principal.</p>
+      <div style={s.grid}>
+        {areas.map((area) => (
+          <div key={area.nombre} style={s.card}>
+            <div style={{ height: "6px", borderRadius: "999px", background: area.color, marginBottom: "18px" }} />
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={s.iconBox}>{area.icono}</div>
+              <h3 style={{ fontSize: "24px", margin: 0 }}>{area.nombre}</h3>
+            </div>
+            <p style={{ color: "#475569", lineHeight: 1.6 }}>{area.descripcion}</p>
+            <button style={s.button} onClick={() => onOpenArea(area.nombre)}>Entrar al área</button>
+          </div>
+        ))}
+      </div>
+
+      <h2 id="fuentes" style={{ ...s.title, marginTop: "40px" }}>Fuentes oficiales</h2>
+      <p style={s.sectionSubtitle}>Sitios desde donde provienen las bases incorporadas en el repertorio.</p>
+      <div style={s.grid}>
+        {fuentes.map((fuente) => (
+          <div key={fuente.nombre} style={s.card}>
+            <h3 style={{ marginTop: 0 }}>{fuente.nombre}</h3>
+            <p style={s.smallMuted}>{fuente.descripcion}</p>
+            <a href={fuente.url} target="_blank" rel="noreferrer">Abrir fuente oficial</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AreaPage({ area, onBack, onOpenDataset }) {
+  const [busqueda, setBusqueda] = useState("");
+  const [tamano, setTamano] = useState("");
+  const [analisis, setAnalisis] = useState("");
+
+  const filtrados = useMemo(() => {
+    return datasets
+      .filter((d) => d.area === area)
+      .filter((d) => {
+        if (!busqueda.trim()) return true;
+        return [d.nombre, d.descripcion, d.contexto, d.fuenteNombre, d.formato, ...d.variables, ...d.tecnicas, ...d.preguntas]
+          .join(" ")
+          .toLowerCase()
+          .includes(busqueda.toLowerCase());
+      })
+      .filter((d) => (tamano ? d.tamano === tamano : true))
+      .filter((d) => (analisis ? d.analisis.includes(analisis) : true));
+  }, [area, busqueda, tamano, analisis]);
+
+  return (
+    <div>
+      <div style={{ marginBottom: "16px" }}>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver a la portada</button>
+      </div>
+      <div style={s.layout}>
+        <div style={s.sidebar}>
+          <h2 style={{ marginTop: 0 }}>{area}</h2>
+          <div style={{ marginBottom: "16px" }}>
+            <strong>Buscar</strong>
+            <input style={s.input} placeholder="Base, variable o técnica..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          </div>
+          <div style={{ marginBottom: "16px" }}>
+            <strong>Tamaño</strong>
+            <select style={s.input} value={tamano} onChange={(e) => setTamano(e.target.value)}>
+              <option value="">Todos</option>
+              {filtrosDisponibles.tamano.map((op) => <option key={op} value={op}>{op}</option>)}
+            </select>
+          </div>
+          <div>
+            <strong>Técnica principal</strong>
+            <select style={s.input} value={analisis} onChange={(e) => setAnalisis(e.target.value)}>
+              <option value="">Todas</option>
+              {filtrosDisponibles.analisis.map((op) => <option key={op} value={op}>{op}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Bases disponibles</h2>
+            <p style={{ color: "#475569" }}>{filtrados.length} resultado(s)</p>
+          </div>
+          {filtrados.map((d) => (
+            <div key={d.id} style={{ ...s.card, marginTop: "16px" }}>
+              <h3 style={{ fontSize: "24px", marginTop: 0 }}>{d.nombre}</h3>
+              <p style={{ color: "#475569", lineHeight: 1.6 }}>{d.descripcion}</p>
+              {d.analisis.map((item) => <span key={item} style={s.badge}>{item}</span>)}
+              <div style={s.meta}>
+                <div><strong>Formato:</strong> {d.formato}</div>
+                <div><strong>Tamaño:</strong> {d.tamano}</div>
+                <div><strong>Variables:</strong> {d.variables.length}</div>
+                <div><strong>Fuente:</strong> {d.fuenteNombre}</div>
+              </div>
+              <button style={s.button} onClick={() => onOpenDataset(d, "area")}>Ver ficha completa</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DatasetPage({ dataset, onBack }) {
+  return (
+    <div>
+      <div style={{ marginBottom: "16px" }}>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver</button>
+      </div>
+      <div style={s.heroFormal}>
+        <p style={s.eyebrow}>{dataset.area}</p>
+        <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>{dataset.nombre}</h1>
+        <p style={s.brandText}>{dataset.contexto}</p>
+      </div>
+      <div style={s.twoCol}>
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Contexto</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.contexto}</p>
+            <h3>Usos posibles</h3>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.usos}</p>
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Código base en R</h2>
+            <p style={{ color: "#475569", marginTop: 0 }}>Script sugerido para filtrar y preparar la base.</p>
+            <pre style={s.pre}>{dataset.script}</pre>
+          </div>
+        </div>
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Información del dataset</h2>
+            <p><strong>Área:</strong> {dataset.area}</p>
+            <p><strong>Fuente:</strong> {dataset.fuenteNombre}</p>
+            <p><strong>Formato:</strong> {dataset.formato}</p>
+            <p><strong>Tamaño:</strong> {dataset.tamano}</p>
+            <p><strong>Unidad de análisis:</strong> {dataset.unidad}</p>
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Técnicas recomendadas</h2>
+            {dataset.tecnicas.map((t) => <span key={t} style={s.badge}>{t}</span>)}
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Variables clave</h2>
+            {dataset.variables.map((v) => <span key={v} style={s.badge}>{v}</span>)}
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Preguntas de investigación</h2>
+            <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
+              {dataset.preguntas.map((p) => <li key={p}>{p}</li>)}
+            </ul>
+          </div>
+          <div style={s.linkBox}>
+            {dataset.descarga && <p><strong>Archivo de datos:</strong> <a href={dataset.descarga} download>Descargar archivo</a></p>}
+            <p><strong>Fuente original:</strong> <a href={dataset.fuenteOriginal} target="_blank" rel="noreferrer">Abrir sitio oficial</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExercisePage({ exercise, onBack }) {
+  return (
+    <div>
+      <div style={{ marginBottom: "16px" }}>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver a ejercicios</button>
+      </div>
+      <div style={s.heroFormal}>
+        <p style={s.eyebrow}>{exercise.tema}</p>
+        <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>{exercise.objetivo}</h1>
+        <p style={s.brandText}>Base sugerida: {exercise.base}</p>
+      </div>
+      <div style={s.twoCol}>
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Instrucciones paso a paso</h2>
+            <ol style={{ color: "#475569", lineHeight: 1.8 }}>
+              {exercise.instrucciones.map((i) => <li key={i}>{i}</li>)}
+            </ol>
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Código en R</h2>
+            <pre style={s.pre}>{exercise.codigo}</pre>
+          </div>
+        </div>
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Objetivo del ejercicio</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>{exercise.objetivo}</p>
+            <p><strong>Tema:</strong> {exercise.tema}</p>
+            <p><strong>Base sugerida:</strong> {exercise.base}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [vista, setVista] = useState("inicio");
+  const [areaActual, setAreaActual] = useState(null);
+  const [datasetActual, setDatasetActual] = useState(null);
+  const [exerciseActual, setExerciseActual] = useState(null);
+  const [origenDataset, setOrigenDataset] = useState("inicio");
+
+  const scrollToSection = (id) => {
+    setVista("inicio");
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
+  };
+
+  return (
+    <div style={s.page}>
+      <header style={s.header}>
+        <div>
+          <h1 style={s.headerTitle}>Repertorio de Bases de Datos Chilenas</h1>
+          <p style={s.headerSubtitle}>Plataforma académica para consulta, descarga y preparación de datos reales.</p>
+        </div>
+        <nav style={s.nav}>
+          <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
+          <span style={s.navItem} onClick={() => scrollToSection("datasets")}>Datasets</span>
+          <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
+          <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
+        </nav>
+      </header>
+
+      <main id="top" style={s.mainWrap}>
+        {vista === "inicio" && (
+          <Home
+            onOpenArea={(area) => {
+              setAreaActual(area);
+              setVista("area");
+            }}
+            onOpenDataset={(dataset, origen) => {
+              setDatasetActual(dataset);
+              setOrigenDataset(origen);
+              setVista("dataset");
+            }}
+            onOpenExercise={(exercise) => {
+              setExerciseActual(exercise);
+              setVista("exercise");
+            }}
+          />
+        )}
+
+        {vista === "area" && (
+          <AreaPage
+            area={areaActual}
+            onBack={() => setVista("inicio")}
+            onOpenDataset={(dataset, origen) => {
+              setDatasetActual(dataset);
+              setOrigenDataset(origen);
+              setVista("dataset");
+            }}
+          />
+        )}
+
+        {vista === "dataset" && (
+          <DatasetPage
+            dataset={datasetActual}
+            onBack={() => {
+              if (origenDataset === "area") setVista("area");
+              else setVista("inicio");
+            }}
+          />
+        )}
+
+        {vista === "exercise" && (
+          <ExercisePage
+            exercise={exerciseActual}
+            onBack={() => {
+              setVista("inicio");
+              setTimeout(() => {
+                document.getElementById("ejercicios")?.scrollIntoView({ behavior: "smooth" });
+              }, 0);
+            }}
+          />
+        )}
+      </main>
+    </div>
+  );
+}

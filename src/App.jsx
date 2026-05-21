@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const datasets = [
   {
@@ -648,7 +648,7 @@ summary(rem20)`,
     formato: "CSV",
     tamano: "Grande",
     analisis: ["Exploratorio", "ANOVA", "Regresión lineal"],
-    fuenteNombre: "Datos.gob.cl / ODEPA",
+    fuenteNombre: "ODEPA",
     unidad: "Registro de precio",
     descripcion:
       "Precios mayoristas de frutas, hortalizas y tubérculos por fecha, región, mercado, producto, variedad, calidad, origen, volumen y precio.",
@@ -660,7 +660,7 @@ summary(rem20)`,
     preguntas: ["¿Qué productos tienen mayor precio promedio?", "¿Existen diferencias de precio entre mercados o regiones?", "¿Cómo cambia el precio a través del tiempo?"],
     variables: ["fecha", "region", "mercado", "producto", "variedad", "calidad", "origen", "volumen", "precio"],
     descarga: "/archivos/precio_mayorista_fruta-hortaliza_2026.csv",
-    fuenteOriginal: "https://datos.gob.cl/dataset/precios-mayoristas-de-frutas-y-hortalizas",
+    fuenteOriginal: "https://www.odepa.gob.cl/estadisticas-del-sector/precios",
     script: `datos <- read.csv("precio_mayorista_fruta-hortaliza_2026.csv",
                   sep = ";",
                   encoding = "latin1",
@@ -720,7 +720,7 @@ summary(precios)`,
     formato: "CSV",
     tamano: "Pequeña",
     analisis: ["Exploratorio", "ANOVA", "Regresión lineal"],
-    fuenteNombre: "Datos ODEPA",
+    fuenteNombre: "ODEPA",
     unidad: "Registro de precio",
     descripcion:
       "Precios de uva de vinificación por región, comuna, poder comprador, variedad, precio y grado brix.",
@@ -732,7 +732,7 @@ summary(precios)`,
     preguntas: ["¿Existen diferencias de precio entre variedades?", "¿Qué regiones presentan mayores precios?", "¿Hay relación entre grado brix y precio?"],
     variables: ["fecha", "region", "comuna", "poder_comprador", "variedad", "precio", "grado_brix"],
     descarga: "/archivos/precio_uva_vinificacion_2026.csv",
-    fuenteOriginal: "https://datos.odepa.gob.cl/dataset/precios-uva-vinificacion",
+    fuenteOriginal: "https://www.odepa.gob.cl/estadisticas-del-sector/precios",
     script: `datos <- read.csv("precio_uva_vinificacion_2026.csv",
                   sep = ";",
                   encoding = "latin1",
@@ -983,7 +983,7 @@ summary(precipitacion)`,
     formato: "XLSX",
     tamano: "Pequeña",
     analisis: ["Exploratorio", "Regresión lineal", "Comparación de grupos"],
-    fuenteNombre: "INE",
+    fuenteNombre: "Banco Central / INE",
     unidad: "Serie demográfica anual",
     descripcion:
       "Estimaciones de población por sexo, edad y región, en formato anual.",
@@ -1381,10 +1381,10 @@ const fuentes = [
   { nombre: "Observatorio Social", descripcion: "Información oficial de CASEN.", url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024" },
   { nombre: "DEIS / MINSAL", descripcion: "Datos abiertos de salud, egresos hospitalarios, nacimientos y estadísticas sanitarias.", url: "https://deis.minsal.cl/#datos-abiertos" },
   { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado de Chile.", url: "https://datos.gob.cl" },
-  { nombre: "INE", descripcion: "Estadísticas oficiales de población, empleo, territorio y demografía.", url: "https://www.ine.gob.cl" },
+  { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
   { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
   { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
-  { nombre: "ODEPA / Datos ODEPA", descripcion: "Datos agropecuarios oficiales, incluyendo precios agrícolas y vitivinícolas.", url: "https://datos.odepa.gob.cl" },
+  { nombre: "ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://www.odepa.gob.cl/estadisticas-del-sector/precios" },
   { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
   { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
 ];
@@ -1530,6 +1530,10 @@ const s = {
   twoCol: { display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "22px", alignItems: "start" },
   pre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "22px", fontSize: "14px", lineHeight: 1.6, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace" },
   linkBox: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "16px", marginTop: "18px", color: "#334155" },
+  stepCard: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "18px", marginTop: "14px" },
+  stepHeader: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" },
+  stepNumber: { width: "30px", height: "30px", borderRadius: "999px", background: "#0b1220", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "14px", flex: "0 0 auto" },
+  miniPre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "14px", fontSize: "13px", lineHeight: 1.55, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace", marginTop: "10px" },
 };
 
 function DatasetCard({ d, onOpenDataset }) {
@@ -1817,7 +1821,69 @@ function AreaPage({ area, onBack, onOpenDataset }) {
   );
 }
 
+
+function getArchivoNombre(dataset) {
+  if (dataset.descarga) return dataset.descarga.split("/").pop();
+  if (dataset.formato === "RData") return "archivo .RData descargado desde la fuente oficial";
+  return "archivo descargado desde la fuente oficial";
+}
+
+function getCargaCodigo(dataset) {
+  const archivo = getArchivoNombre(dataset);
+  if (dataset.formato === "XLSX") {
+    return `library(readxl)\n\ndatos <- read_excel("${archivo}")\nhead(datos)\nnames(datos)`;
+  }
+  if (dataset.formato === "RData") {
+    return `load("casen_2024")\n\ndatos <- casen_2024\nhead(datos)\nnames(datos)`;
+  }
+  const sep = dataset.id.includes("defunciones") ? "|" : dataset.id.includes("simce") || dataset.id.includes("egresos") || dataset.id.includes("ene") ? ";" : ",";
+  return `datos <- read.csv("${archivo}",\n                  sep = "${sep}",\n                  stringsAsFactors = FALSE)\n\nhead(datos)\nnames(datos)`;
+}
+
+function buildDatasetGuide(dataset) {
+  const archivo = getArchivoNombre(dataset);
+  const vars = dataset.variables.slice(0, 10).map((v) => `  "${v}"`).join(",\n");
+  const isLocal = Boolean(dataset.descarga);
+
+  return [
+    {
+      titulo: "Descargar o ubicar la base",
+      texto: isLocal
+        ? `Descarga el archivo desde la ficha o verifica que esté guardado como ${archivo}. Para trabajar en R, el archivo debe quedar en la misma carpeta de trabajo o debes indicar su ruta.`
+        : `Esta base se deja con fuente oficial porque el archivo puede ser muy pesado o no conviene subirlo completo al repositorio. Primero descárgalo desde el sitio original y guárdalo con el nombre indicado en el script.`,
+      codigo: `# Archivo esperado\n# ${archivo}\n\n# Fuente oficial\n# ${dataset.fuenteOriginal}`,
+      resultado: "Al final de este paso tienes el archivo disponible para cargarlo en R."
+    },
+    {
+      titulo: "Cargar la base y revisar su estructura",
+      texto: "El primer paso en R no es analizar inmediatamente, sino abrir la base, mirar sus nombres de variables y revisar las primeras filas.",
+      codigo: getCargaCodigo(dataset),
+      resultado: "Deberías ver las primeras observaciones y una lista de nombres de columnas. Esto permite comprobar que el archivo se leyó correctamente."
+    },
+    {
+      titulo: "Seleccionar variables principales",
+      texto: "Para comenzar, se trabaja con un subconjunto de variables que tienen sentido para preguntas simples. Esto hace que la base sea más manejable para estudiantes que están partiendo.",
+      codigo: `# Variables sugeridas para esta base\nvariables_principales <- c(\n${vars}\n)\n\nvariables_principales`,
+      resultado: `La base queda orientada a la unidad de análisis: ${dataset.unidad}.`
+    },
+    {
+      titulo: "Limpiar y transformar variables",
+      texto: "Aquí se eliminan registros no válidos, se convierten variables categóricas a factor y se crean variables nuevas cuando ayudan a interpretar mejor los datos.",
+      codigo: `# Ejecuta el script completo de limpieza que aparece más abajo\n# Luego revisa:\n\ncolSums(is.na(datos))\nsummary(datos)`,
+      resultado: "La idea es terminar con una base más clara, con variables interpretables y lista para análisis exploratorio."
+    },
+    {
+      titulo: "Primer análisis exploratorio sugerido",
+      texto: "Después de limpiar, se recomienda partir con tablas, resúmenes y gráficos simples antes de pensar en modelos estadísticos.",
+      codigo: `# Algunas ideas iniciales\nsummary(datos)\n\n# Para variables categóricas\n# table(datos$variable_categorica)\n\n# Para variables numéricas\n# hist(datos$variable_numerica)\n# boxplot(datos$variable_numerica ~ datos$grupo)`,
+      resultado: `Desde aquí se puede avanzar a: ${dataset.analisis.join(", ")}.`
+    }
+  ];
+}
+
 function DatasetPage({ dataset, onBack }) {
+  const guia = buildDatasetGuide(dataset);
+
   return (
     <div>
       <div style={{ marginBottom: "16px" }}>
@@ -1836,9 +1902,34 @@ function DatasetPage({ dataset, onBack }) {
             <h3>Usos posibles</h3>
             <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.usos}</p>
           </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Guía paso a paso para comenzar</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+              Esta sección está pensada para personas que todavía no se manejan mucho con R o estadística.
+              La idea es mostrar qué hacer primero, qué código usar y qué debería quedar listo antes del análisis.
+            </p>
+
+            {guia.map((paso, index) => (
+              <div key={paso.titulo} style={s.stepCard}>
+                <div style={s.stepHeader}>
+                  <div style={s.stepNumber}>{index + 1}</div>
+                  <h3 style={{ margin: 0 }}>{paso.titulo}</h3>
+                </div>
+                <p style={{ color: "#475569", lineHeight: 1.65, marginBottom: 0 }}>{paso.texto}</p>
+                <pre style={s.miniPre}>{paso.codigo}</pre>
+                <p style={{ color: "#334155", lineHeight: 1.65, marginBottom: 0 }}>
+                  <strong>Qué debería quedar:</strong> {paso.resultado}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Código base en R</h2>
-            <p style={{ color: "#475569", marginTop: 0 }}>Script sugerido para filtrar y preparar la base.</p>
+            <p style={{ color: "#475569", marginTop: 0 }}>
+              Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo.
+            </p>
             <pre style={s.pre}>{dataset.script}</pre>
           </div>
         </div>
@@ -1919,11 +2010,81 @@ export default function App() {
   const [exerciseActual, setExerciseActual] = useState(null);
   const [origenDataset, setOrigenDataset] = useState("inicio");
 
-  const scrollToSection = (id) => {
+  const aplicarRuta = () => {
+    const hash = window.location.hash || "#/inicio";
+    const partes = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+    const vistaRuta = partes[0] || "inicio";
+
+    if (vistaRuta === "catalogo") {
+      setVista("catalogo");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
+    if (vistaRuta === "areas") {
+      setVista("areas");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
+    if (vistaRuta === "area") {
+      const area = decodeURIComponent(partes[1] || "");
+      setAreaActual(area || areas[0]?.nombre || "");
+      setVista("area");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
+    if (vistaRuta === "dataset") {
+      const id = partes[1];
+      const origen = partes[2] || "inicio";
+      const dataset = datasets.find((d) => d.id === id) || datasets[0];
+      setDatasetActual(dataset);
+      setOrigenDataset(origen);
+      setVista("dataset");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
+    if (vistaRuta === "exercise") {
+      const id = partes[1];
+      const exercise = ejercicios.find((e) => e.id === id) || ejercicios[0];
+      setExerciseActual(exercise);
+      setVista("exercise");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
     setVista("inicio");
+    const seccion = partes[1];
     setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+      if (seccion) {
+        document.getElementById(seccion)?.scrollIntoView({ behavior: "auto" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
     }, 0);
+  };
+
+  useEffect(() => {
+    if (!window.location.hash) {
+      window.history.replaceState(null, "", "#/inicio");
+    }
+    aplicarRuta();
+    window.addEventListener("hashchange", aplicarRuta);
+    return () => window.removeEventListener("hashchange", aplicarRuta);
+  }, []);
+
+  const irA = (ruta) => {
+    if (window.location.hash === ruta) {
+      aplicarRuta();
+    } else {
+      window.location.hash = ruta;
+    }
+  };
+
+  const scrollToSection = (id) => {
+    irA(`#/inicio/${id}`);
   };
 
   return (
@@ -1935,7 +2096,7 @@ export default function App() {
         </div>
         <nav style={s.nav}>
           <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
-          <span style={s.navItem} onClick={() => setVista("catalogo")}>Datasets</span>
+          <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
           <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
           <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
         </nav>
@@ -1944,54 +2105,33 @@ export default function App() {
       <main id="top" style={s.mainWrap}>
         {vista === "inicio" && (
           <Home
-            onOpenArea={(area) => {
-              setAreaActual(area);
-              setVista("area");
-            }}
-            onOpenDataset={(dataset, origen) => {
-              setDatasetActual(dataset);
-              setOrigenDataset(origen);
-              setVista("dataset");
-            }}
-            onOpenExercise={(exercise) => {
-              setExerciseActual(exercise);
-              setVista("exercise");
-            }}
-            onOpenCatalog={() => setVista("catalogo")}
-            onOpenAreas={() => setVista("areas")}
+            onOpenArea={(area) => irA(`#/area/${encodeURIComponent(area)}`)}
+            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
+            onOpenExercise={(exercise) => irA(`#/exercise/${exercise.id}`)}
+            onOpenCatalog={() => irA("#/catalogo")}
+            onOpenAreas={() => irA("#/areas")}
           />
         )}
 
         {vista === "catalogo" && (
           <CatalogPage
-            onBack={() => setVista("inicio")}
-            onOpenDataset={(dataset, origen) => {
-              setDatasetActual(dataset);
-              setOrigenDataset(origen);
-              setVista("dataset");
-            }}
+            onBack={() => irA("#/inicio")}
+            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
           />
         )}
 
         {vista === "areas" && (
           <AreasListPage
-            onBack={() => setVista("inicio")}
-            onOpenArea={(area) => {
-              setAreaActual(area);
-              setVista("area");
-            }}
+            onBack={() => irA("#/inicio")}
+            onOpenArea={(area) => irA(`#/area/${encodeURIComponent(area)}`)}
           />
         )}
 
         {vista === "area" && (
           <AreaPage
             area={areaActual}
-            onBack={() => setVista("areas")}
-            onOpenDataset={(dataset, origen) => {
-              setDatasetActual(dataset);
-              setOrigenDataset(origen);
-              setVista("dataset");
-            }}
+            onBack={() => irA("#/areas")}
+            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
           />
         )}
 
@@ -1999,8 +2139,8 @@ export default function App() {
           <DatasetPage
             dataset={datasetActual}
             onBack={() => {
-              if (origenDataset === "area") setVista("area");
-              else setVista("inicio");
+              if (origenDataset === "area" && areaActual) irA(`#/area/${encodeURIComponent(areaActual)}`);
+              else irA("#/inicio");
             }}
           />
         )}
@@ -2008,12 +2148,7 @@ export default function App() {
         {vista === "exercise" && (
           <ExercisePage
             exercise={exerciseActual}
-            onBack={() => {
-              setVista("inicio");
-              setTimeout(() => {
-                document.getElementById("ejercicios")?.scrollIntoView({ behavior: "smooth" });
-              }, 0);
-            }}
+            onBack={() => scrollToSection("ejercicios")}
           />
         )}
       </main>

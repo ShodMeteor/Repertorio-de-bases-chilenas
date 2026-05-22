@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const datasets = [
   {
@@ -129,413 +129,99 @@ head(datos_simce)
 summary(datos_simce)`,
   },
   {
-    id: "casen-educacion-2024",
-    nombre: "CASEN 2024 - Educación",
-    area: "Educación",
-    icono: "🎓",
-    formato: "RData",
-    tamano: "Grande",
-    analisis: ["Exploratorio", "ANOVA", "Regresión lineal", "Regresión logística"],
-    fuenteNombre: "Observatorio Social",
-    unidad: "Persona",
-    descripcion:
-      "Selección de variables CASEN para estudiar asistencia, escolaridad, deserción y brechas educativas.",
-    contexto:
-      "Esta ficha usa CASEN 2024 desde el área de educación. Está pensada para estudiantes de ciencia política que quieran analizar desigualdades educativas según edad, sexo, región, zona urbana o rural y condición socioeconómica. No busca entregar un modelo final, sino dejar una base limpia para comenzar con análisis descriptivo, comparación de grupos y modelos simples.",
-    usos:
-      "Sirve para estudiar asistencia escolar, años de escolaridad, alfabetización, deserción y diferencias territoriales o socioeconómicas en educación.",
-    tecnicas: ["Tablas de frecuencia", "Boxplots", "ANOVA", "Regresión lineal", "Regresión logística"],
-    preguntas: [
-      "¿Existen diferencias en años de escolaridad entre regiones?",
-      "¿La asistencia escolar cambia según zona urbana o rural?",
-      "¿La pobreza se relaciona con menor escolaridad?",
-      "¿Qué variables se asocian con no asistir a un establecimiento educacional?",
-    ],
-    variables: ["edad", "sexo", "region", "area", "esc", "asiste", "desercion", "e1", "e3", "e6a", "pobreza", "pobreza_multi"],
-    descarga: "",
-    fuenteOriginal: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024",
-    sugerenciasFiltros: [
-      "Para trabajar solo una región: casen_educacion <- subset(casen_educacion, region == 13)",
-      "Para trabajar solo población escolar: casen_educacion <- subset(casen_educacion, edad >= 6 & edad <= 18)",
-      "Para comparar zona urbana y rural: usa table(casen_educacion$area) y boxplot(esc ~ area, data = casen_educacion)"
-    ],
-    script: `load("casen_2024")
-
-datos_casen <- casen_2024
-
-# 1. Seleccionar variables relacionadas con educación
-variables <- c(
-  "edad", "sexo", "region", "area",
-  "esc", "asiste", "desercion",
-  "e1", "e3", "e6a",
-  "pobreza", "pobreza_multi"
-)
-
-variables <- variables[variables %in% names(datos_casen)]
-casen_educacion <- datos_casen[, variables]
-
-# 2. Reemplazar códigos especiales por NA
-codigos_invalidos <- c(-88, -99, -77, -66, -9, -8, -7, -6)
-for (v in names(casen_educacion)) {
-  casen_educacion[[v]][casen_educacion[[v]] %in% codigos_invalidos] <- NA
-}
-
-# 3. Filtrar observaciones mínimas para análisis educativo
-casen_educacion <- subset(casen_educacion,
-                          !is.na(edad) &
-                          !is.na(sexo) &
-                          !is.na(region) &
-                          !is.na(area))
-
-if ("esc" %in% names(casen_educacion)) {
-  casen_educacion <- subset(casen_educacion,
-                            is.na(esc) | esc >= 0)
-}
-
-# 4. Crear variable simple para distinguir RM y otras regiones
-casen_educacion$zona_region <- ifelse(casen_educacion$region == 13,
-                                      "Región Metropolitana",
-                                      "Otras regiones")
-
-# 5. Convertir variables categóricas
-for (v in c("sexo", "region", "area", "asiste", "desercion",
-            "e1", "e3", "e6a", "pobreza", "pobreza_multi", "zona_region")) {
-  if (v %in% names(casen_educacion)) {
-    casen_educacion[[v]] <- factor(casen_educacion[[v]])
-  }
-}
-
-head(casen_educacion)
-summary(casen_educacion)`,
-  },
-  {
-    id: "casen-salud-2024",
-    nombre: "CASEN 2024 - Salud",
-    area: "Salud",
-    icono: "🏥",
-    formato: "RData",
-    tamano: "Grande",
-    analisis: ["Exploratorio", "Comparación de proporciones", "Regresión logística"],
-    fuenteNombre: "Observatorio Social",
-    unidad: "Persona",
-    descripcion:
-      "Selección de variables CASEN para estudiar previsión de salud, acceso a atención y problemas para recibir atención médica.",
-    contexto:
-      "Esta ficha usa CASEN 2024 para trabajar preguntas de política pública en salud. Permite observar diferencias en acceso y problemas de atención según región, sexo, edad, pobreza, discapacidad o sistema de salud. Es útil para cursos donde se quiere conectar estadística básica con desigualdad social y diseño de políticas públicas.",
-    usos:
-      "Sirve para tablas de frecuencia, comparación de proporciones y regresión logística sobre problemas de acceso a salud.",
-    tecnicas: ["Tablas de frecuencia", "Gráficos de barras", "Comparación de proporciones", "Regresión logística"],
-    preguntas: [
-      "¿Existen diferencias regionales en problemas de acceso a atención médica?",
-      "¿Las personas en pobreza reportan más problemas para ser atendidas?",
-      "¿El sistema de previsión de salud se relaciona con dificultades de acceso?",
-      "¿La discapacidad se asocia con mayores barreras de atención?",
-    ],
-    variables: ["edad", "sexo", "region", "area", "s13_fonasa", "s15a", "s19b", "s19d", "s19e", "hh_d_acc", "disc_wg", "pobreza", "pobreza_multi"],
-    descarga: "",
-    fuenteOriginal: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024",
-    sugerenciasFiltros: [
-      "Para estudiar solo personas adultas: casen_salud <- subset(casen_salud, edad >= 18)",
-      "Para seleccionar una región: casen_salud <- subset(casen_salud, region == 13)",
-      "Para crear una variable binaria de problema de atención, usa variables como s19b, s19d o s19e según la pregunta."
-    ],
-    script: `load("casen_2024")
-
-datos_casen <- casen_2024
-
-# 1. Seleccionar variables relacionadas con salud y acceso
-variables <- c(
-  "edad", "sexo", "region", "area",
-  "s13_fonasa", "s15a", "s19b", "s19d", "s19e",
-  "hh_d_acc", "disc_wg",
-  "pobreza", "pobreza_multi"
-)
-
-variables <- variables[variables %in% names(datos_casen)]
-casen_salud <- datos_casen[, variables]
-
-# 2. Reemplazar códigos especiales por NA
-codigos_invalidos <- c(-88, -99, -77, -66, -9, -8, -7, -6)
-for (v in names(casen_salud)) {
-  casen_salud[[v]][casen_salud[[v]] %in% codigos_invalidos] <- NA
-}
-
-# 3. Filtrar variables mínimas
-casen_salud <- subset(casen_salud,
-                      !is.na(edad) &
-                      !is.na(sexo) &
-                      !is.na(region) &
-                      !is.na(area))
-
-# 4. Crear variables binarias útiles para análisis inicial
-if ("s19b" %in% names(casen_salud)) {
-  casen_salud$problema_hora <- ifelse(casen_salud$s19b == 1, 1,
-                                      ifelse(casen_salud$s19b == 2, 0, NA))
-}
-
-if ("hh_d_acc" %in% names(casen_salud)) {
-  casen_salud$carencia_acceso_salud <- ifelse(casen_salud$hh_d_acc == 1, 1,
-                                              ifelse(casen_salud$hh_d_acc == 0, 0, NA))
-}
-
-casen_salud$zona_region <- ifelse(casen_salud$region == 13,
-                                  "Región Metropolitana",
-                                  "Otras regiones")
-
-# 5. Convertir variables categóricas
-for (v in c("sexo", "region", "area", "s13_fonasa", "s15a",
-            "s19b", "s19d", "s19e", "hh_d_acc", "disc_wg",
-            "pobreza", "pobreza_multi", "zona_region",
-            "problema_hora", "carencia_acceso_salud")) {
-  if (v %in% names(casen_salud)) {
-    casen_salud[[v]] <- factor(casen_salud[[v]])
-  }
-}
-
-head(casen_salud)
-summary(casen_salud)`,
-  },
-  {
-    id: "casen-trabajo-ingresos-2024",
-    nombre: "CASEN 2024 - Trabajo e ingresos",
-    area: "Trabajo",
-    icono: "💼",
-    formato: "RData",
-    tamano: "Grande",
-    analisis: ["Exploratorio", "ANOVA", "Regresión lineal", "Regresión logística"],
-    fuenteNombre: "Observatorio Social",
-    unidad: "Persona",
-    descripcion:
-      "Selección de variables CASEN para estudiar ocupación, ingresos, escolaridad y diferencias laborales.",
-    contexto:
-      "Esta ficha permite usar CASEN 2024 para preguntas de mercado laboral e ingresos. Es especialmente útil para ciencia política porque conecta condiciones laborales con desigualdad territorial, género, educación y pobreza. La base queda preparada para análisis descriptivo, comparación de ingresos y modelos simples.",
-    usos:
-      "Sirve para comparar ingresos por grupo, estudiar ocupación, analizar brechas por sexo o región y construir modelos simples de ingreso u ocupación.",
-    tecnicas: ["Histogramas", "Boxplots", "ANOVA", "Regresión lineal", "Regresión logística"],
-    preguntas: [
-      "¿Existen diferencias de ingreso entre hombres y mujeres?",
-      "¿La escolaridad se relaciona con mayores ingresos?",
-      "¿La ocupación cambia según región o zona urbana/rural?",
-      "¿La pobreza se relaciona con la situación laboral?",
-    ],
-    variables: ["edad", "sexo", "region", "area", "esc", "o1", "o3", "o6", "o15", "y1", "ytot", "pobreza", "pobreza_multi"],
-    descarga: "",
-    fuenteOriginal: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024",
-    sugerenciasFiltros: [
-      "Para trabajar población en edad de trabajar: casen_trabajo <- subset(casen_trabajo, edad >= 15)",
-      "Para una región específica: casen_trabajo <- subset(casen_trabajo, region == 13)",
-      "Para ingresos menos asimétricos: usa log_ytot, creado como log(1 + ytot)."
-    ],
-    script: `load("casen_2024")
-
-datos_casen <- casen_2024
-
-# 1. Seleccionar variables laborales y de ingreso
-variables <- c(
-  "edad", "sexo", "region", "area",
-  "esc", "o1", "o3", "o6", "o15",
-  "y1", "ytot",
-  "pobreza", "pobreza_multi"
-)
-
-variables <- variables[variables %in% names(datos_casen)]
-casen_trabajo <- datos_casen[, variables]
-
-# 2. Reemplazar códigos especiales por NA
-codigos_invalidos <- c(-88, -99, -77, -66, -9, -8, -7, -6)
-for (v in names(casen_trabajo)) {
-  casen_trabajo[[v]][casen_trabajo[[v]] %in% codigos_invalidos] <- NA
-}
-
-# 3. Filtrar población de 15 años o más
-casen_trabajo <- subset(casen_trabajo,
-                        !is.na(edad) &
-                        edad >= 15 &
-                        !is.na(sexo) &
-                        !is.na(region) &
-                        !is.na(area))
-
-# 4. Crear variables útiles
-if ("ytot" %in% names(casen_trabajo)) {
-  casen_trabajo <- subset(casen_trabajo,
-                          is.na(ytot) | ytot >= 0)
-  casen_trabajo$log_ytot <- log1p(casen_trabajo$ytot)
-}
-
-if ("o1" %in% names(casen_trabajo)) {
-  casen_trabajo$trabajo_semana <- ifelse(casen_trabajo$o1 == 1, 1,
-                                         ifelse(casen_trabajo$o1 == 2, 0, NA))
-}
-
-casen_trabajo$zona_region <- ifelse(casen_trabajo$region == 13,
-                                    "Región Metropolitana",
-                                    "Otras regiones")
-
-# 5. Convertir variables categóricas
-for (v in c("sexo", "region", "area", "o1", "o3", "o6", "o15",
-            "pobreza", "pobreza_multi", "trabajo_semana", "zona_region")) {
-  if (v %in% names(casen_trabajo)) {
-    casen_trabajo[[v]] <- factor(casen_trabajo[[v]])
-  }
-}
-
-head(casen_trabajo)
-summary(casen_trabajo)`,
-  },
-  {
-    id: "casen-pobreza-desigualdad-2024",
-    nombre: "CASEN 2024 - Pobreza y desigualdad",
+    id: "casen-2024",
+    nombre: "CASEN 2024",
     area: "Datos sociales",
     icono: "📊",
     formato: "RData",
     tamano: "Grande",
-    analisis: ["Exploratorio", "ANOVA", "Regresión lineal", "Regresión logística"],
+    analisis: ["Exploratorio", "Regresión", "Regresión logística", "Correlación"],
     fuenteNombre: "Observatorio Social",
     unidad: "Persona / hogar",
     descripcion:
-      "Selección de variables CASEN para estudiar pobreza, ingreso, escolaridad, región y carencias multidimensionales.",
+      "Encuesta socioeconómica con variables de ingreso, escolaridad, pobreza, salud, asistencia escolar y territorio.",
     contexto:
-      "Esta ficha deja CASEN 2024 preparada para preguntas centrales de política pública: pobreza, desigualdad, ingresos y carencias. Es una entrada general para estudiantes de ciencia política que quieran analizar brechas sociales por territorio, sexo, edad o zona urbana/rural.",
+      "CASEN 2024 es una de las principales fuentes para estudiar condiciones sociales y económicas en Chile. Permite trabajar con variables de personas y hogares, incluyendo edad, sexo, región, zona urbana o rural, escolaridad, ingresos, pobreza por ingresos, pobreza multidimensional y variables relacionadas con acceso a salud. En el repertorio se deja una selección amplia para que pueda usarse en educación, desigualdad, salud y análisis territorial.",
     usos:
-      "Sirve para estudiar distribución de ingresos, pobreza por ingresos, pobreza multidimensional, brechas regionales y relación entre escolaridad e ingreso.",
-    tecnicas: ["Histogramas", "Boxplots", "Tablas de frecuencia", "ANOVA", "Regresión lineal", "Regresión logística"],
+      "Puede utilizarse para análisis exploratorio, comparación de grupos, regresión lineal, regresión logística, análisis de pobreza, relación entre escolaridad e ingreso, acceso a salud y diferencias regionales.",
+    tecnicas: ["Histogramas", "Boxplots por pobreza", "Gráficos de dispersión", "Correlación", "Regresión lineal", "Regresión logística"],
     preguntas: [
-      "¿Qué regiones presentan mayor proporción de pobreza?",
-      "¿La pobreza multidimensional cambia entre zonas urbanas y rurales?",
       "¿Existe relación entre escolaridad e ingreso?",
-      "¿Qué variables se asocian con estar en situación de pobreza?",
+      "¿Las personas en pobreza tienen menor escolaridad?",
+      "¿Existen diferencias regionales en ingreso o acceso a salud?",
+      "¿Qué variables se asocian con problemas para conseguir atención médica?",
     ],
-    variables: ["edad", "sexo", "region", "area", "esc", "ytot", "yaut", "pobreza", "pobreza_multi", "nse", "hh_d_esc", "hh_d_acc", "hh_d_habit"],
+    variables: ["edad", "sexo", "region", "area", "esc", "ytot", "pobreza", "pobreza_multi", "asiste", "desercion", "hh_d_acc", "s19b", "s19d", "s19e", "nse"],
     descarga: "",
     fuenteOriginal: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024",
-    sugerenciasFiltros: [
-      "Para comparar RM contra regiones: usa zona_region, creada en el script.",
-      "Para una región específica: casen_social <- subset(casen_social, region == 13)",
-      "Para estudiar ingresos, usa log_ytot para evitar que los valores extremos dominen el gráfico."
-    ],
     script: `load("casen_2024")
 
 datos_casen <- casen_2024
 
-# 1. Seleccionar variables de pobreza, ingreso y desigualdad
-variables <- c(
-  "edad", "sexo", "region", "area",
-  "esc", "ytot", "yaut",
-  "pobreza", "pobreza_multi", "nse",
-  "hh_d_esc", "hh_d_acc", "hh_d_habit"
-)
-
-variables <- variables[variables %in% names(datos_casen)]
-casen_social <- datos_casen[, variables]
-
-# 2. Reemplazar códigos especiales por NA
-codigos_invalidos <- c(-88, -99, -77, -66, -9, -8, -7, -6)
-for (v in names(casen_social)) {
-  casen_social[[v]][casen_social[[v]] %in% codigos_invalidos] <- NA
-}
-
-# 3. Filtrar observaciones mínimas
-casen_social <- subset(casen_social,
-                       !is.na(edad) &
-                       !is.na(sexo) &
-                       !is.na(region) &
-                       !is.na(area))
-
-# 4. Crear variables útiles
-if ("ytot" %in% names(casen_social)) {
-  casen_social <- subset(casen_social,
-                         is.na(ytot) | ytot >= 0)
-  casen_social$log_ytot <- log1p(casen_social$ytot)
-}
-
-casen_social$zona_region <- ifelse(casen_social$region == 13,
-                                   "Región Metropolitana",
-                                   "Otras regiones")
-
-# 5. Convertir variables categóricas
-for (v in c("sexo", "region", "area", "pobreza", "pobreza_multi",
-            "nse", "hh_d_esc", "hh_d_acc", "hh_d_habit", "zona_region")) {
-  if (v %in% names(casen_social)) {
-    casen_social[[v]] <- factor(casen_social[[v]])
-  }
-}
-
-head(casen_social)
-summary(casen_social)`,
-  },
-  {
-    id: "casen-vivienda-territorio-2024",
-    nombre: "CASEN 2024 - Vivienda y territorio",
-    area: "Vivienda",
-    icono: "🏠",
-    formato: "RData",
-    tamano: "Grande",
-    analisis: ["Exploratorio", "ANOVA", "Regresión logística"],
-    fuenteNombre: "Observatorio Social",
-    unidad: "Hogar / vivienda",
-    descripcion:
-      "Selección de variables CASEN para estudiar tipo de vivienda, hacinamiento, saneamiento, tenencia y calidad de vivienda.",
-    contexto:
-      "Esta ficha usa CASEN 2024 para estudiar condiciones habitacionales y territoriales. Es útil para preguntas sobre desigualdad urbana-rural, calidad de vivienda, hacinamiento, tenencia y carencias asociadas al hogar. Para ciencia política, permite conectar vivienda con pobreza, región y diseño de políticas sociales.",
-    usos:
-      "Sirve para analizar condiciones de vivienda por región, zona urbana/rural, pobreza multidimensional y carencias del hogar.",
-    tecnicas: ["Tablas de frecuencia", "Gráficos de barras", "Boxplots", "ANOVA", "Regresión logística"],
-    preguntas: [
-      "¿Existen diferencias regionales en hacinamiento?",
-      "¿La calidad de vivienda cambia entre zonas urbanas y rurales?",
-      "¿La pobreza multidimensional se asocia con peores condiciones habitacionales?",
-      "¿Qué hogares presentan mayor probabilidad de carencias de vivienda?",
-    ],
-    variables: ["region", "area", "v1", "v2", "v3", "v4", "v5", "v6", "ind_hacina", "ind_san", "ten_viv", "ind_mat", "ind_estado", "ind_cal_glob", "pobreza_multi"],
-    descarga: "",
-    fuenteOriginal: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024",
-    sugerenciasFiltros: [
-      "Para una región específica: casen_vivienda <- subset(casen_vivienda, region == 13)",
-      "Para comparar urbano/rural: usa table(casen_vivienda$area) y gráficos de barras.",
-      "Para estudiar calidad global de vivienda: revisa ind_cal_glob si está disponible en tu versión de la base."
-    ],
-    script: `load("casen_2024")
-
-datos_casen <- casen_2024
-
-# 1. Seleccionar variables de vivienda y territorio
-variables <- c(
-  "region", "area",
-  "v1", "v2", "v3", "v4", "v5", "v6",
-  "ind_hacina", "ind_san", "ten_viv",
-  "ind_mat", "ind_estado", "ind_cal_glob",
-  "pobreza_multi"
-)
-
-variables <- variables[variables %in% names(datos_casen)]
-casen_vivienda <- datos_casen[, variables]
+# 1. Seleccionar variables sociales, económicas y de salud
+casen <- datos_casen[, c(
+  "edad",
+  "sexo",
+  "region",
+  "area",
+  "esc",
+  "ytot",
+  "pobreza",
+  "pobreza_multi",
+  "asiste",
+  "desercion",
+  "hh_d_acc",
+  "s19b",
+  "s19d",
+  "s19e",
+  "nse"
+)]
 
 # 2. Reemplazar códigos especiales por NA
 codigos_invalidos <- c(-88, -99, -77, -66, -9, -8, -7, -6)
-for (v in names(casen_vivienda)) {
-  casen_vivienda[[v]][casen_vivienda[[v]] %in% codigos_invalidos] <- NA
+for (v in names(casen)) {
+  casen[[v]][casen[[v]] %in% codigos_invalidos] <- NA
 }
 
-# 3. Filtrar observaciones mínimas
-casen_vivienda <- subset(casen_vivienda,
-                         !is.na(region) &
-                         !is.na(area))
+# 3. Filtrar variables mínimas completas
+casen <- subset(casen,
+                !is.na(edad) &
+                !is.na(sexo) &
+                !is.na(region) &
+                !is.na(area))
 
-# 4. Crear variable territorial simple
-casen_vivienda$zona_region <- ifelse(casen_vivienda$region == 13,
-                                     "Región Metropolitana",
-                                     "Otras regiones")
+# 4. Crear base para análisis de personas desde 15 años
+casen_15 <- subset(casen,
+                   edad >= 15 &
+                   !is.na(esc) &
+                   !is.na(ytot))
 
-# 5. Convertir variables categóricas
-for (v in names(casen_vivienda)) {
-  if (v != "zona_region") {
-    casen_vivienda[[v]] <- factor(casen_vivienda[[v]])
-  }
-}
-casen_vivienda$zona_region <- factor(casen_vivienda$zona_region)
+casen_15 <- subset(casen_15,
+                   esc >= 0 &
+                   ytot >= 0)
 
-head(casen_vivienda)
-summary(casen_vivienda)`,
+# 5. Crear variables útiles para análisis posteriores
+casen_15$log_ytot <- log1p(casen_15$ytot)
+casen_15$rm_o_r <- ifelse(casen_15$region == 13,
+                          "Metropolitana",
+                          "Regiones")
+casen_15$problema_hora <- ifelse(casen_15$s19b == 1, 1,
+                                 ifelse(casen_15$s19b == 2, 0, NA))
+
+# 6. Convertir variables categóricas
+casen_15$sexo <- factor(casen_15$sexo)
+casen_15$region <- factor(casen_15$region)
+casen_15$area <- factor(casen_15$area)
+casen_15$pobreza <- factor(casen_15$pobreza)
+casen_15$pobreza_multi <- factor(casen_15$pobreza_multi)
+casen_15$asiste <- factor(casen_15$asiste)
+casen_15$desercion <- factor(casen_15$desercion)
+casen_15$hh_d_acc <- factor(casen_15$hh_d_acc)
+casen_15$nse <- factor(casen_15$nse)
+casen_15$rm_o_r <- factor(casen_15$rm_o_r)
+
+head(casen_15)
+summary(casen_15)`,
   },
   {
     id: "aire-cerrillos",
@@ -962,7 +648,7 @@ summary(rem20)`,
     formato: "CSV",
     tamano: "Grande",
     analisis: ["Exploratorio", "ANOVA", "Regresión lineal"],
-    fuenteNombre: "Datos.gob.cl / ODEPA",
+    fuenteNombre: "ODEPA",
     unidad: "Registro de precio",
     descripcion:
       "Precios mayoristas de frutas, hortalizas y tubérculos por fecha, región, mercado, producto, variedad, calidad, origen, volumen y precio.",
@@ -974,7 +660,7 @@ summary(rem20)`,
     preguntas: ["¿Qué productos tienen mayor precio promedio?", "¿Existen diferencias de precio entre mercados o regiones?", "¿Cómo cambia el precio a través del tiempo?"],
     variables: ["fecha", "region", "mercado", "producto", "variedad", "calidad", "origen", "volumen", "precio"],
     descarga: "/archivos/precio_mayorista_fruta-hortaliza_2026.csv",
-    fuenteOriginal: "https://datos.gob.cl/dataset/precios-mayoristas-de-frutas-y-hortalizas",
+    fuenteOriginal: "https://www.odepa.gob.cl/estadisticas-del-sector/precios",
     script: `datos <- read.csv("precio_mayorista_fruta-hortaliza_2026.csv",
                   sep = ";",
                   encoding = "latin1",
@@ -1034,7 +720,7 @@ summary(precios)`,
     formato: "CSV",
     tamano: "Pequeña",
     analisis: ["Exploratorio", "ANOVA", "Regresión lineal"],
-    fuenteNombre: "Datos ODEPA",
+    fuenteNombre: "ODEPA",
     unidad: "Registro de precio",
     descripcion:
       "Precios de uva de vinificación por región, comuna, poder comprador, variedad, precio y grado brix.",
@@ -1046,7 +732,7 @@ summary(precios)`,
     preguntas: ["¿Existen diferencias de precio entre variedades?", "¿Qué regiones presentan mayores precios?", "¿Hay relación entre grado brix y precio?"],
     variables: ["fecha", "region", "comuna", "poder_comprador", "variedad", "precio", "grado_brix"],
     descarga: "/archivos/precio_uva_vinificacion_2026.csv",
-    fuenteOriginal: "https://datos.odepa.gob.cl/dataset/precios-uva-vinificacion",
+    fuenteOriginal: "https://www.odepa.gob.cl/estadisticas-del-sector/precios",
     script: `datos <- read.csv("precio_uva_vinificacion_2026.csv",
                   sep = ";",
                   encoding = "latin1",
@@ -1297,7 +983,7 @@ summary(precipitacion)`,
     formato: "XLSX",
     tamano: "Pequeña",
     analisis: ["Exploratorio", "Regresión lineal", "Comparación de grupos"],
-    fuenteNombre: "INE",
+    fuenteNombre: "Banco Central / INE",
     unidad: "Serie demográfica anual",
     descripcion:
       "Estimaciones de población por sexo, edad y región, en formato anual.",
@@ -1309,7 +995,7 @@ summary(precipitacion)`,
     preguntas: ["¿Cómo ha cambiado la población total?", "¿Qué grupo etario crece más rápido?", "¿Existen diferencias entre hombres y mujeres?"],
     variables: ["region", "serie", "anio", "poblacion", "sexo", "grupo_edad"],
     descarga: "/archivos/EST_GEN_POB_16.xlsx",
-    fuenteOriginal: "https://www.ine.gob.cl",
+    fuenteOriginal: "https://si3.bcentral.cl/Siete",
     script: `library(readxl)
 library(dplyr)
 library(tidyr)
@@ -1679,7 +1365,6 @@ summary(empleo_pesca)`,
 const areas = [
   { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
   { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
-  { nombre: "Vivienda", icono: "🏠", descripcion: "Bases para condiciones habitacionales, hacinamiento, tenencia y territorio.", color: "#92400e" },
   { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores de salud.", color: "#be123c" },
   { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
   { nombre: "Economía", icono: "💰", descripcion: "Bases para PIB regional, actividad económica e indicadores macroeconómicos.", color: "#b45309" },
@@ -1699,7 +1384,7 @@ const fuentes = [
   { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
   { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
   { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
-  { nombre: "ODEPA / Datos ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://datos.odepa.gob.cl" },
+  { nombre: "ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://www.odepa.gob.cl/estadisticas-del-sector/precios" },
   { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
   { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
 ];
@@ -1845,10 +1530,6 @@ const s = {
   twoCol: { display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "22px", alignItems: "start" },
   pre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "22px", fontSize: "14px", lineHeight: 1.6, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace" },
   linkBox: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "16px", marginTop: "18px", color: "#334155" },
-  stepCard: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "18px", marginTop: "14px" },
-  stepHeader: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" },
-  stepNumber: { width: "30px", height: "30px", borderRadius: "999px", background: "#0b1220", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "14px", flex: "0 0 auto" },
-  miniPre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "14px", fontSize: "13px", lineHeight: 1.55, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace", marginTop: "10px" },
 };
 
 function DatasetCard({ d, onOpenDataset }) {
@@ -1982,35 +1663,16 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
       </div>
 
       <h2 id="fuentes" style={{ ...s.title, marginTop: "40px" }}>Fuentes oficiales</h2>
-      <p style={s.sectionSubtitle}>
-        Referencias oficiales de origen. Se muestran en formato compacto para no ocupar demasiado espacio en la portada.
-      </p>
-      <div style={{ ...s.card, padding: "18px" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-          {fuentes.map((fuente) => (
-            <a
-              key={fuente.nombre}
-              href={fuente.url}
-              target="_blank"
-              rel="noreferrer"
-              title={fuente.descripcion}
-              style={{
-                textDecoration: "none",
-                color: "#0b1220",
-                border: "1px solid #cbd5e1",
-                background: "#f8fafc",
-                borderRadius: "999px",
-                padding: "9px 12px",
-                fontSize: "13px",
-                fontWeight: 700
-              }}
-            >
-              {fuente.nombre}
-            </a>
-          ))}
-        </div>
+      <p style={s.sectionSubtitle}>Sitios desde donde provienen las bases incorporadas en el repertorio.</p>
+      <div style={s.grid}>
+        {fuentes.map((fuente) => (
+          <div key={fuente.nombre} style={s.card}>
+            <h3 style={{ marginTop: 0 }}>{fuente.nombre}</h3>
+            <p style={s.smallMuted}>{fuente.descripcion}</p>
+            <a href={fuente.url} target="_blank" rel="noreferrer">Abrir fuente oficial</a>
+          </div>
+        ))}
       </div>
-
     </div>
   );
 }
@@ -2155,69 +1817,7 @@ function AreaPage({ area, onBack, onOpenDataset }) {
   );
 }
 
-
-function getArchivoNombre(dataset) {
-  if (dataset.descarga) return dataset.descarga.split("/").pop();
-  if (dataset.formato === "RData") return "archivo .RData descargado desde la fuente oficial";
-  return "archivo descargado desde la fuente oficial";
-}
-
-function getCargaCodigo(dataset) {
-  const archivo = getArchivoNombre(dataset);
-  if (dataset.formato === "XLSX") {
-    return `library(readxl)\n\ndatos <- read_excel("${archivo}")\nhead(datos)\nnames(datos)`;
-  }
-  if (dataset.formato === "RData") {
-    return `load("casen_2024")\n\ndatos <- casen_2024\nhead(datos)\nnames(datos)`;
-  }
-  const sep = dataset.id.includes("defunciones") ? "|" : dataset.id.includes("simce") || dataset.id.includes("egresos") || dataset.id.includes("ene") ? ";" : ",";
-  return `datos <- read.csv("${archivo}",\n                  sep = "${sep}",\n                  stringsAsFactors = FALSE)\n\nhead(datos)\nnames(datos)`;
-}
-
-function buildDatasetGuide(dataset) {
-  const archivo = getArchivoNombre(dataset);
-  const vars = dataset.variables.slice(0, 10).map((v) => `  "${v}"`).join(",\n");
-  const isLocal = Boolean(dataset.descarga);
-
-  return [
-    {
-      titulo: "Descargar o ubicar la base",
-      texto: isLocal
-        ? `Descarga el archivo desde la ficha o verifica que esté guardado como ${archivo}. Para trabajar en R, el archivo debe quedar en la misma carpeta de trabajo o debes indicar su ruta.`
-        : `Esta base se deja con fuente oficial porque el archivo puede ser muy pesado o no conviene subirlo completo al repositorio. Primero descárgalo desde el sitio original y guárdalo con el nombre indicado en el script.`,
-      codigo: `# Archivo esperado\n# ${archivo}\n\n# Fuente oficial\n# ${dataset.fuenteOriginal}`,
-      resultado: "Al final de este paso tienes el archivo disponible para cargarlo en R."
-    },
-    {
-      titulo: "Cargar la base y revisar su estructura",
-      texto: "El primer paso en R no es analizar inmediatamente, sino abrir la base, mirar sus nombres de variables y revisar las primeras filas.",
-      codigo: getCargaCodigo(dataset),
-      resultado: "Deberías ver las primeras observaciones y una lista de nombres de columnas. Esto permite comprobar que el archivo se leyó correctamente."
-    },
-    {
-      titulo: "Seleccionar variables principales",
-      texto: "Para comenzar, se trabaja con un subconjunto de variables que tienen sentido para preguntas simples. Esto hace que la base sea más manejable para estudiantes que están partiendo.",
-      codigo: `# Variables sugeridas para esta base\nvariables_principales <- c(\n${vars}\n)\n\nvariables_principales`,
-      resultado: `La base queda orientada a la unidad de análisis: ${dataset.unidad}.`
-    },
-    {
-      titulo: "Limpiar y transformar variables",
-      texto: "Aquí se eliminan registros no válidos, se convierten variables categóricas a factor y se crean variables nuevas cuando ayudan a interpretar mejor los datos.",
-      codigo: `# Ejecuta el script completo de limpieza que aparece más abajo\n# Luego revisa:\n\ncolSums(is.na(datos))\nsummary(datos)`,
-      resultado: "La idea es terminar con una base más clara, con variables interpretables y lista para análisis exploratorio."
-    },
-    {
-      titulo: "Primer análisis exploratorio sugerido",
-      texto: "Después de limpiar, se recomienda partir con tablas, resúmenes y gráficos simples antes de pensar en modelos estadísticos.",
-      codigo: `# Algunas ideas iniciales\nsummary(datos)\n\n# Para variables categóricas\n# table(datos$variable_categorica)\n\n# Para variables numéricas\n# hist(datos$variable_numerica)\n# boxplot(datos$variable_numerica ~ datos$grupo)`,
-      resultado: `Desde aquí se puede avanzar a: ${dataset.analisis.join(", ")}.`
-    }
-  ];
-}
-
 function DatasetPage({ dataset, onBack }) {
-  const guia = buildDatasetGuide(dataset);
-
   return (
     <div>
       <div style={{ marginBottom: "16px" }}>
@@ -2236,34 +1836,9 @@ function DatasetPage({ dataset, onBack }) {
             <h3>Usos posibles</h3>
             <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.usos}</p>
           </div>
-
-          <div style={{ ...s.card, marginTop: "18px" }}>
-            <h2 style={{ marginTop: 0 }}>Guía paso a paso para comenzar</h2>
-            <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
-              Esta sección está pensada para personas que todavía no se manejan mucho con R o estadística.
-              La idea es mostrar qué hacer primero, qué código usar y qué debería quedar listo antes del análisis.
-            </p>
-
-            {guia.map((paso, index) => (
-              <div key={paso.titulo} style={s.stepCard}>
-                <div style={s.stepHeader}>
-                  <div style={s.stepNumber}>{index + 1}</div>
-                  <h3 style={{ margin: 0 }}>{paso.titulo}</h3>
-                </div>
-                <p style={{ color: "#475569", lineHeight: 1.65, marginBottom: 0 }}>{paso.texto}</p>
-                <pre style={s.miniPre}>{paso.codigo}</pre>
-                <p style={{ color: "#334155", lineHeight: 1.65, marginBottom: 0 }}>
-                  <strong>Qué debería quedar:</strong> {paso.resultado}
-                </p>
-              </div>
-            ))}
-          </div>
-
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Código base en R</h2>
-            <p style={{ color: "#475569", marginTop: 0 }}>
-              Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo.
-            </p>
+            <p style={{ color: "#475569", marginTop: 0 }}>Script sugerido para filtrar y preparar la base.</p>
             <pre style={s.pre}>{dataset.script}</pre>
           </div>
         </div>
@@ -2290,17 +1865,6 @@ function DatasetPage({ dataset, onBack }) {
               {dataset.preguntas.map((p) => <li key={p}>{p}</li>)}
             </ul>
           </div>
-          {dataset.sugerenciasFiltros && (
-            <div style={{ ...s.card, marginTop: "18px" }}>
-              <h2 style={{ marginTop: 0 }}>Filtros útiles para adaptar la base</h2>
-              <p style={{ color: "#475569", lineHeight: 1.6, marginTop: 0 }}>
-                Estas ideas sirven para que cada estudiante pueda acotar la base según su pregunta de investigación.
-              </p>
-              <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
-                {dataset.sugerenciasFiltros.map((p) => <li key={p}><code>{p}</code></li>)}
-              </ul>
-            </div>
-          )}
           <div style={s.linkBox}>
             {dataset.descarga && <p><strong>Archivo de datos:</strong> <a href={dataset.descarga} download>Descargar archivo</a></p>}
             <p><strong>Fuente original:</strong> <a href={dataset.fuenteOriginal} target="_blank" rel="noreferrer">Abrir sitio oficial</a></p>
@@ -2355,81 +1919,11 @@ export default function App() {
   const [exerciseActual, setExerciseActual] = useState(null);
   const [origenDataset, setOrigenDataset] = useState("inicio");
 
-  const aplicarRuta = () => {
-    const hash = window.location.hash || "#/inicio";
-    const partes = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
-    const vistaRuta = partes[0] || "inicio";
-
-    if (vistaRuta === "catalogo") {
-      setVista("catalogo");
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
-      return;
-    }
-
-    if (vistaRuta === "areas") {
-      setVista("areas");
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
-      return;
-    }
-
-    if (vistaRuta === "area") {
-      const area = decodeURIComponent(partes[1] || "");
-      setAreaActual(area || areas[0]?.nombre || "");
-      setVista("area");
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
-      return;
-    }
-
-    if (vistaRuta === "dataset") {
-      const id = partes[1];
-      const origen = partes[2] || "inicio";
-      const dataset = datasets.find((d) => d.id === id) || datasets[0];
-      setDatasetActual(dataset);
-      setOrigenDataset(origen);
-      setVista("dataset");
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
-      return;
-    }
-
-    if (vistaRuta === "exercise") {
-      const id = partes[1];
-      const exercise = ejercicios.find((e) => e.id === id) || ejercicios[0];
-      setExerciseActual(exercise);
-      setVista("exercise");
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
-      return;
-    }
-
-    setVista("inicio");
-    const seccion = partes[1];
-    setTimeout(() => {
-      if (seccion) {
-        document.getElementById(seccion)?.scrollIntoView({ behavior: "auto" });
-      } else {
-        window.scrollTo({ top: 0, behavior: "auto" });
-      }
-    }, 0);
-  };
-
-  useEffect(() => {
-    if (!window.location.hash) {
-      window.history.replaceState(null, "", "#/inicio");
-    }
-    aplicarRuta();
-    window.addEventListener("hashchange", aplicarRuta);
-    return () => window.removeEventListener("hashchange", aplicarRuta);
-  }, []);
-
-  const irA = (ruta) => {
-    if (window.location.hash === ruta) {
-      aplicarRuta();
-    } else {
-      window.location.hash = ruta;
-    }
-  };
-
   const scrollToSection = (id) => {
-    irA(`#/inicio/${id}`);
+    setVista("inicio");
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
   };
 
   return (
@@ -2441,7 +1935,7 @@ export default function App() {
         </div>
         <nav style={s.nav}>
           <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
-          <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
+          <span style={s.navItem} onClick={() => setVista("catalogo")}>Datasets</span>
           <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
           <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
         </nav>
@@ -2450,33 +1944,54 @@ export default function App() {
       <main id="top" style={s.mainWrap}>
         {vista === "inicio" && (
           <Home
-            onOpenArea={(area) => irA(`#/area/${encodeURIComponent(area)}`)}
-            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
-            onOpenExercise={(exercise) => irA(`#/exercise/${exercise.id}`)}
-            onOpenCatalog={() => irA("#/catalogo")}
-            onOpenAreas={() => irA("#/areas")}
+            onOpenArea={(area) => {
+              setAreaActual(area);
+              setVista("area");
+            }}
+            onOpenDataset={(dataset, origen) => {
+              setDatasetActual(dataset);
+              setOrigenDataset(origen);
+              setVista("dataset");
+            }}
+            onOpenExercise={(exercise) => {
+              setExerciseActual(exercise);
+              setVista("exercise");
+            }}
+            onOpenCatalog={() => setVista("catalogo")}
+            onOpenAreas={() => setVista("areas")}
           />
         )}
 
         {vista === "catalogo" && (
           <CatalogPage
-            onBack={() => irA("#/inicio")}
-            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
+            onBack={() => setVista("inicio")}
+            onOpenDataset={(dataset, origen) => {
+              setDatasetActual(dataset);
+              setOrigenDataset(origen);
+              setVista("dataset");
+            }}
           />
         )}
 
         {vista === "areas" && (
           <AreasListPage
-            onBack={() => irA("#/inicio")}
-            onOpenArea={(area) => irA(`#/area/${encodeURIComponent(area)}`)}
+            onBack={() => setVista("inicio")}
+            onOpenArea={(area) => {
+              setAreaActual(area);
+              setVista("area");
+            }}
           />
         )}
 
         {vista === "area" && (
           <AreaPage
             area={areaActual}
-            onBack={() => irA("#/areas")}
-            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
+            onBack={() => setVista("areas")}
+            onOpenDataset={(dataset, origen) => {
+              setDatasetActual(dataset);
+              setOrigenDataset(origen);
+              setVista("dataset");
+            }}
           />
         )}
 
@@ -2484,8 +1999,8 @@ export default function App() {
           <DatasetPage
             dataset={datasetActual}
             onBack={() => {
-              if (origenDataset === "area" && areaActual) irA(`#/area/${encodeURIComponent(areaActual)}`);
-              else irA("#/inicio");
+              if (origenDataset === "area") setVista("area");
+              else setVista("inicio");
             }}
           />
         )}
@@ -2493,7 +2008,12 @@ export default function App() {
         {vista === "exercise" && (
           <ExercisePage
             exercise={exerciseActual}
-            onBack={() => scrollToSection("ejercicios")}
+            onBack={() => {
+              setVista("inicio");
+              setTimeout(() => {
+                document.getElementById("ejercicios")?.scrollIntoView({ behavior: "smooth" });
+              }, 0);
+            }}
           />
         )}
       </main>

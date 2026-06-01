@@ -2414,6 +2414,58 @@ const s = {
   miniPre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "14px", fontSize: "13px", lineHeight: 1.55, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace", marginTop: "10px" },
 };
 
+function normalizarTexto(valor) {
+  return String(valor ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function textoBuscableDataset(dataset) {
+  return [
+    dataset.id,
+    dataset.nombre,
+    dataset.area,
+    dataset.icono,
+    dataset.formato,
+    dataset.tamano,
+    dataset.fuenteNombre,
+    dataset.unidad,
+    dataset.descripcion,
+    dataset.contexto,
+    dataset.usos,
+    dataset.fuenteOriginal,
+    ...(dataset.analisis || []),
+    ...(dataset.tecnicas || []),
+    ...(dataset.preguntas || []),
+    ...(dataset.variables || []),
+    ...(dataset.sugerenciasFiltros || []),
+  ].join(" ");
+}
+
+function coincideBusquedaDataset(dataset, busqueda) {
+  const q = normalizarTexto(busqueda);
+  if (!q) return true;
+  return normalizarTexto(textoBuscableDataset(dataset)).includes(q);
+}
+
+function textoBuscableEjercicio(exercise) {
+  return [
+    exercise.id,
+    exercise.tema,
+    exercise.base,
+    exercise.objetivo,
+    ...(exercise.instrucciones || []),
+  ].join(" ");
+}
+
+function coincideBusquedaEjercicio(exercise, busqueda) {
+  const q = normalizarTexto(busqueda);
+  if (!q) return true;
+  return normalizarTexto(textoBuscableEjercicio(exercise)).includes(q);
+}
+
 function DatasetCard({ d, onOpenDataset }) {
   return (
     <div key={d.id} style={s.card}>
@@ -2444,12 +2496,7 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
 
   const resultadosBusqueda = useMemo(() => {
     if (!busquedaHome.trim()) return datasets.slice(0, 8);
-    return datasets.filter((d) =>
-      [d.nombre, d.area, d.descripcion, d.contexto, d.fuenteNombre, d.formato, ...d.variables, ...d.tecnicas, ...d.preguntas]
-        .join(" ")
-        .toLowerCase()
-        .includes(busquedaHome.toLowerCase())
-    );
+    return datasets.filter((d) => coincideBusquedaDataset(d, busquedaHome));
   }, [busquedaHome]);
 
   const areasDestacadas = areas.slice(0, 6);
@@ -2585,13 +2632,7 @@ function CatalogPage({ onBack, onOpenDataset }) {
   const filtrados = useMemo(() => {
     return datasets
       .filter((d) => (area ? d.area === area : true))
-      .filter((d) => {
-        if (!busqueda.trim()) return true;
-        return [d.nombre, d.area, d.descripcion, d.contexto, d.fuenteNombre, d.formato, ...d.variables, ...d.tecnicas, ...d.preguntas]
-          .join(" ")
-          .toLowerCase()
-          .includes(busqueda.toLowerCase());
-      });
+      .filter((d) => coincideBusquedaDataset(d, busqueda));
   }, [busqueda, area]);
 
   return (
@@ -2655,13 +2696,7 @@ function AreaPage({ area, onBack, onOpenDataset }) {
   const filtrados = useMemo(() => {
     return datasets
       .filter((d) => d.area === area)
-      .filter((d) => {
-        if (!busqueda.trim()) return true;
-        return [d.nombre, d.descripcion, d.contexto, d.fuenteNombre, d.formato, ...d.variables, ...d.tecnicas, ...d.preguntas]
-          .join(" ")
-          .toLowerCase()
-          .includes(busqueda.toLowerCase());
-      })
+      .filter((d) => coincideBusquedaDataset(d, busqueda))
       .filter((d) => (tamano ? d.tamano === tamano : true))
       .filter((d) => (analisis ? d.analisis.includes(analisis) : true));
   }, [area, busqueda, tamano, analisis]);
@@ -3074,4 +3109,4 @@ export default function App() {
   );
 }
 
-export default App;
+

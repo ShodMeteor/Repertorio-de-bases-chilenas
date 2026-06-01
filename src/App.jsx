@@ -2632,7 +2632,7 @@ function DatasetCard({ d, onOpenDataset }) {
 }
 
 
-function SearchResultsPage({ query }) {
+function SearchResultsPage({ query, onBack, onOpenDataset }) {
   const resultados = useMemo(() => {
     const termino = normalizarTexto(query || "");
     if (!termino) return datasets;
@@ -2641,7 +2641,7 @@ function SearchResultsPage({ query }) {
 
   return (
     <div>
-      <button style={s.secondaryButton} onClick={() => (window.location.hash = "#/inicio")}>← Volver al inicio</button>
+      <button style={s.secondaryButton} onClick={onBack}>← Volver al inicio</button>
       <div style={s.panel}>
         <h2 style={s.title}>Resultados de búsqueda</h2>
         <p style={s.muted}>Búsqueda: <strong>{query}</strong>. Se muestran todas las bases que coinciden con el nombre, área, fuente, variables, técnicas o preguntas.</p>
@@ -2651,7 +2651,7 @@ function SearchResultsPage({ query }) {
           <DatasetCard
             key={d.id}
             d={d}
-            onOpenDataset={(dataset) => (window.location.hash = `#/dataset/${dataset.id}`)}
+            onOpenDataset={(dataset) => onOpenDataset(dataset, "busqueda")}
           />
         ))}
       </div>
@@ -3129,6 +3129,12 @@ export default function App() {
       return;
     }
 
+    if (vistaRuta === "busqueda") {
+      setVista("busqueda");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
     if (vistaRuta === "dataset") {
       const id = partes[1];
       const origen = partes[2] || "inicio";
@@ -3193,7 +3199,6 @@ export default function App() {
           <nav style={s.nav}>
             <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
             <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
-            <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
             <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
           </nav>
         </div>
@@ -3228,6 +3233,14 @@ export default function App() {
           <AreaPage
             area={areaActual}
             onBack={() => irA("#/areas")}
+            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
+          />
+        )}
+
+        {vista === "busqueda" && (
+          <SearchResultsPage
+            query={decodeURIComponent(window.location.hash.replace("#/busqueda/", ""))}
+            onBack={() => irA("#/inicio")}
             onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
           />
         )}

@@ -2007,8 +2007,157 @@ empleo_pesca$clase_industria <- factor(empleo_pesca$clase_industria)
 
 head(empleo_pesca)
 summary(empleo_pesca)`,
-  },,
-{
+  },
+];
+
+const areas = [
+  { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
+  { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
+  { nombre: "Opinión pública", icono: "🏛️", descripcion: "Encuestas de opinión, percepciones políticas, confianza institucional y comparación entre mediciones.", color: "#4338ca" },
+  { nombre: "Vivienda", icono: "🏠", descripcion: "Bases para condiciones habitacionales, hacinamiento, tenencia y territorio.", color: "#92400e" },
+  { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores de salud.", color: "#be123c" },
+  { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
+  { nombre: "Economía", icono: "💰", descripcion: "Bases para PIB regional, actividad económica e indicadores macroeconómicos.", color: "#b45309" },
+  { nombre: "Medio ambiente", icono: "🌱", descripcion: "Bases para calidad del aire, clima, contaminación y análisis ambiental.", color: "#15803d" },
+  { nombre: "Agricultura", icono: "🌾", descripcion: "Bases para precios agrícolas, emergencias y actividad agropecuaria.", color: "#65a30d" },
+  { nombre: "Demografía", icono: "👥", descripcion: "Bases para población, nacimientos y estructura demográfica.", color: "#0891b2" },
+  { nombre: "Seguridad", icono: "⚖️", descripcion: "Bases para sanciones, registros administrativos y análisis legal.", color: "#475569" },
+  { nombre: "Turismo", icono: "🧳", descripcion: "Bases para empleo turístico y actividad económica asociada.", color: "#db2777" },
+  { nombre: "Pesca e industria", icono: "🐟", descripcion: "Bases para empleo, producción y actividad industrial pesquera.", color: "#0f766e" },
+];
+
+const fuentes = [
+  { nombre: "Agencia de Calidad de la Educación", descripcion: "Bases educativas oficiales.", url: "https://informacionestadistica.agenciaeducacion.cl/#/bases" },
+  { nombre: "Observatorio Social", descripcion: "Información oficial de CASEN.", url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024" },
+  { nombre: "DEIS / MINSAL", descripcion: "Datos abiertos de salud, egresos hospitalarios, nacimientos y estadísticas sanitarias.", url: "https://deis.minsal.cl/#datos-abiertos" },
+  { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado de Chile.", url: "https://datos.gob.cl" },
+  { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
+  { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
+  { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
+  { nombre: "ODEPA / Datos ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://datos.odepa.gob.cl" },
+  { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
+  { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
+  { nombre: "Centro de Estudios Públicos", descripcion: "Encuestas nacionales de opinión pública y documentación asociada.", url: "https://www.cepchile.cl/opinion-publica/encuesta-cep/" },
+];
+
+const ejercicios = [
+  {
+    id: "eda-simce",
+    tema: "Análisis exploratorio",
+    icono: "📈",
+    base: "SIMCE 2° medio 2024",
+    objetivo:
+      "Describir la distribución de los puntajes de Matemática y Lectura y compararlos por tipo de establecimiento.",
+    instrucciones: [
+      "Cargar y limpiar la base SIMCE.",
+      "Seleccionar puntajes de Matemática, Lectura y dependencia.",
+      "Crear histogramas y boxplots.",
+      "Escribir una interpretación breve.",
+    ],
+    codigo: `datos <- read.csv("simce2m2024_rbd_preliminar.csv",
+                  sep = ";",
+                  encoding = "latin1")
+
+datos <- subset(datos,
+                prom_mate2m_rbd > 0 &
+                prom_lect2m_rbd > 0)
+
+datos$tipo_colegio <- factor(datos$cod_depe2,
+                             levels = c(1, 2, 3, 4),
+                             labels = c("Municipal",
+                                        "Subvencionado",
+                                        "Particular_Pagado",
+                                        "Administracion_Delegada"))
+
+hist(datos$prom_mate2m_rbd,
+     main = "Distribución puntaje Matemática",
+     xlab = "Puntaje Matemática")
+
+boxplot(prom_mate2m_rbd ~ tipo_colegio,
+        data = datos,
+        main = "Matemática por tipo de colegio",
+        xlab = "Tipo de colegio",
+        ylab = "Puntaje")`,
+  },
+  {
+    id: "anova-aire",
+    tema: "ANOVA",
+    icono: "📊",
+    base: "Calidad del aire - Cerrillos",
+    objetivo:
+      "Comparar si los registros validados presentan diferencias entre meses.",
+    instrucciones: [
+      "Cargar la base limpia de calidad del aire.",
+      "Definir registros validados como variable respuesta.",
+      "Definir mes como factor.",
+      "Ajustar un modelo ANOVA e interpretar.",
+    ],
+    codigo: `datos <- read.csv("datos_final_aire_limpios.csv",
+                  sep = ",",
+                  header = TRUE)
+
+datos$mes <- factor(datos$mes)
+
+modelo <- aov(reg_validos ~ mes, data = datos)
+
+summary(modelo)
+
+boxplot(reg_validos ~ mes,
+        data = datos,
+        main = "Registros validados por mes",
+        xlab = "Mes",
+        ylab = "Registros validados")`,
+  },
+  {
+    id: "regresion-casen",
+    tema: "Regresión lineal",
+    icono: "📉",
+    base: "CASEN 2024",
+    objetivo:
+      "Estudiar la relación entre años de escolaridad e ingreso total.",
+    instrucciones: [
+      "Cargar CASEN.",
+      "Seleccionar escolaridad e ingreso.",
+      "Filtrar datos válidos.",
+      "Ajustar una regresión lineal simple.",
+    ],
+    codigo: `# Antes de correr este código, carga la base CASEN 2024 en R.
+# Debe existir un objeto llamado casen_2024.
+
+library(haven)
+
+if (!exists("casen_2024")) {
+  stop("Primero carga CASEN 2024 y verifica que el objeto se llame casen_2024")
+}
+
+datos <- as.data.frame(casen_2024[, c("esc", "ytot")])
+
+for (v in names(datos)) {
+  if (inherits(datos[[v]], "haven_labelled") | inherits(datos[[v]], "labelled")) {
+    datos[[v]] <- as.numeric(zap_labels(datos[[v]]))
+  }
+}
+
+datos <- subset(datos,
+                !is.na(esc) &
+                !is.na(ytot) &
+                esc >= 0 &
+                ytot > 0)
+
+datos$log_ytot <- log1p(datos$ytot)
+
+modelo <- lm(log_ytot ~ esc, data = datos)
+
+summary(modelo)
+
+plot(datos$esc, datos$log_ytot,
+     xlab = "Años de escolaridad",
+     ylab = "Logaritmo del ingreso total")
+
+abline(modelo)`,
+  },
+
+  {
     id: "cep-91-2024",
     nombre: "Encuesta CEP 91 - 2024",
     area: "Opinión pública",
@@ -2219,41 +2368,9 @@ colSums(is.na(cep_comparada))
 
 # Base final para comparar 2023 y 2024
 datos_final_cep_comparada <- cep_comparada`
-  }
+  },
+
 ];
-
-const areas = [
-  { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
-  { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
-  { nombre: "Opinión pública", icono: "🏛️", descripcion: "Encuestas de opinión, percepciones políticas, confianza institucional y comparación entre mediciones.", color: "#4338ca" },
-  { nombre: "Vivienda", icono: "🏠", descripcion: "Bases para condiciones habitacionales, hacinamiento, tenencia y territorio.", color: "#92400e" },
-  { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores de salud.", color: "#be123c" },
-  { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
-  { nombre: "Economía", icono: "💰", descripcion: "Bases para PIB regional, actividad económica e indicadores macroeconómicos.", color: "#b45309" },
-  { nombre: "Medio ambiente", icono: "🌱", descripcion: "Bases para calidad del aire, clima, contaminación y análisis ambiental.", color: "#15803d" },
-  { nombre: "Agricultura", icono: "🌾", descripcion: "Bases para precios agrícolas, emergencias y actividad agropecuaria.", color: "#65a30d" },
-  { nombre: "Demografía", icono: "👥", descripcion: "Bases para población, nacimientos y estructura demográfica.", color: "#0891b2" },
-  { nombre: "Seguridad", icono: "⚖️", descripcion: "Bases para sanciones, registros administrativos y análisis legal.", color: "#475569" },
-  { nombre: "Turismo", icono: "🧳", descripcion: "Bases para empleo turístico y actividad económica asociada.", color: "#db2777" },
-  { nombre: "Pesca e industria", icono: "🐟", descripcion: "Bases para empleo, producción y actividad industrial pesquera.", color: "#0f766e" },
-];
-
-const fuentes = [
-  { nombre: "Agencia de Calidad de la Educación", descripcion: "Bases educativas oficiales.", url: "https://informacionestadistica.agenciaeducacion.cl/#/bases" },
-  { nombre: "Observatorio Social", descripcion: "Información oficial de CASEN.", url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024" },
-  { nombre: "DEIS / MINSAL", descripcion: "Datos abiertos de salud, egresos hospitalarios, nacimientos y estadísticas sanitarias.", url: "https://deis.minsal.cl/#datos-abiertos" },
-  { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado de Chile.", url: "https://datos.gob.cl" },
-  { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
-  { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
-  { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
-  { nombre: "ODEPA / Datos ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://datos.odepa.gob.cl" },
-  { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
-  { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
-  { nombre: "Centro de Estudios Públicos", descripcion: "Encuestas nacionales de opinión pública y documentación asociada.", url: "https://www.cepchile.cl/opinion-publica/encuesta-cep/" },
-];
-
-const ejercicios = [];
-
 
 const filtrosDisponibles = {
   tamano: ["Pequeña", "Mediana", "Grande"],
@@ -2518,7 +2635,7 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
           <div style={s.statCard}><p style={s.statNumber}>{datasets.length}</p><p style={s.statLabel}>datasets incorporados</p></div>
           <div style={s.statCard}><p style={s.statNumber}>{areas.length}</p><p style={s.statLabel}>áreas temáticas</p></div>
           <div style={s.statCard}><p style={s.statNumber}>{fuentes.length}</p><p style={s.statLabel}>fuentes oficiales</p></div>
-          <div style={s.statCard}><p style={s.statNumber}>{fuentes.length}</p><p style={s.statLabel}>fuentes oficiales</p></div>
+          <div style={s.statCard}><p style={s.statNumber}>{ejercicios.length}</p><p style={s.statLabel}>ejercicios sugeridos</p></div>
         </div>
       </div>
 
@@ -2549,6 +2666,43 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
 
       <div style={s.grid}>
         {resultadosBusqueda.map((d) => <DatasetCard key={d.id} d={d} onOpenDataset={onOpenDataset} />)}
+      </div>
+
+      <h2 id="ejercicios" style={{ ...s.title, marginTop: "40px" }}>Ejercicios sugeridos</h2>
+      <p style={s.sectionSubtitle}>Ejercicios organizados por tema. Cada uno puede abrirse como guía completa.</p>
+      <div style={s.grid}>
+        {ejercicios.map((e) => (
+          <div key={e.id} style={s.card}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={s.iconBox}>{e.icono}</div>
+              <h3 style={{ margin: 0 }}>{e.tema}</h3>
+            </div>
+            <p style={s.smallMuted}>{e.objetivo}</p>
+            <button style={s.button} onClick={() => onOpenExercise(e)}>Ver ejercicio completo</button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", gap: "16px", marginTop: "40px" }}>
+        <div>
+          <h2 id="areas" style={s.title}>Explorar por área</h2>
+          <p style={s.sectionSubtitle}>Entra a una categoría específica para filtrar bases según tamaño o técnica principal.</p>
+        </div>
+        <button style={s.buttonAlt} onClick={onOpenAreas}>Ver más áreas</button>
+      </div>
+
+      <div style={s.grid}>
+        {areasDestacadas.map((area) => (
+          <div key={area.nombre} style={s.card}>
+            <div style={{ height: "6px", borderRadius: "999px", background: area.color, marginBottom: "18px" }} />
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={s.iconBox}>{area.icono}</div>
+              <h3 style={{ fontSize: "24px", margin: 0 }}>{area.nombre}</h3>
+            </div>
+            <p style={{ color: "#475569", lineHeight: 1.6 }}>{area.descripcion}</p>
+            <button style={s.button} onClick={() => onOpenArea(area.nombre)}>Entrar al área</button>
+          </div>
+        ))}
       </div>
 
       <h2 id="fuentes" style={{ ...s.title, marginTop: "40px" }}>Fuentes oficiales</h2>
@@ -3012,7 +3166,8 @@ export default function App() {
           <nav style={s.nav}>
             <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
             <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
-              <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
+            <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
+            <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
           </nav>
         </div>
       </header>
@@ -3070,4 +3225,5 @@ export default function App() {
     </div>
   );
 }
+
 

@@ -2007,156 +2007,7 @@ empleo_pesca$clase_industria <- factor(empleo_pesca$clase_industria)
 
 head(empleo_pesca)
 summary(empleo_pesca)`,
-  },
-];
-
-const areas = [
-  { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
-  { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
-  { nombre: "Opinión pública", icono: "🏛️", descripcion: "Encuestas de opinión, percepciones políticas, confianza institucional y comparación entre mediciones.", color: "#4338ca" },
-  { nombre: "Vivienda", icono: "🏠", descripcion: "Bases para condiciones habitacionales, hacinamiento, tenencia y territorio.", color: "#92400e" },
-  { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores de salud.", color: "#be123c" },
-  { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
-  { nombre: "Economía", icono: "💰", descripcion: "Bases para PIB regional, actividad económica e indicadores macroeconómicos.", color: "#b45309" },
-  { nombre: "Medio ambiente", icono: "🌱", descripcion: "Bases para calidad del aire, clima, contaminación y análisis ambiental.", color: "#15803d" },
-  { nombre: "Agricultura", icono: "🌾", descripcion: "Bases para precios agrícolas, emergencias y actividad agropecuaria.", color: "#65a30d" },
-  { nombre: "Demografía", icono: "👥", descripcion: "Bases para población, nacimientos y estructura demográfica.", color: "#0891b2" },
-  { nombre: "Seguridad", icono: "⚖️", descripcion: "Bases para sanciones, registros administrativos y análisis legal.", color: "#475569" },
-  { nombre: "Turismo", icono: "🧳", descripcion: "Bases para empleo turístico y actividad económica asociada.", color: "#db2777" },
-  { nombre: "Pesca e industria", icono: "🐟", descripcion: "Bases para empleo, producción y actividad industrial pesquera.", color: "#0f766e" },
-];
-
-const fuentes = [
-  { nombre: "Agencia de Calidad de la Educación", descripcion: "Bases educativas oficiales.", url: "https://informacionestadistica.agenciaeducacion.cl/#/bases" },
-  { nombre: "Observatorio Social", descripcion: "Información oficial de CASEN.", url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024" },
-  { nombre: "DEIS / MINSAL", descripcion: "Datos abiertos de salud, egresos hospitalarios, nacimientos y estadísticas sanitarias.", url: "https://deis.minsal.cl/#datos-abiertos" },
-  { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado de Chile.", url: "https://datos.gob.cl" },
-  { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
-  { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
-  { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
-  { nombre: "ODEPA / Datos ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://datos.odepa.gob.cl" },
-  { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
-  { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
-  { nombre: "Centro de Estudios Públicos", descripcion: "Encuestas nacionales de opinión pública y documentación asociada.", url: "https://www.cepchile.cl/opinion-publica/encuesta-cep/" },
-];
-
-const ejercicios = [
-  {
-    id: "eda-simce",
-    tema: "Análisis exploratorio",
-    icono: "📈",
-    base: "SIMCE 2° medio 2024",
-    objetivo:
-      "Describir la distribución de los puntajes de Matemática y Lectura y compararlos por tipo de establecimiento.",
-    instrucciones: [
-      "Cargar y limpiar la base SIMCE.",
-      "Seleccionar puntajes de Matemática, Lectura y dependencia.",
-      "Crear histogramas y boxplots.",
-      "Escribir una interpretación breve.",
-    ],
-    codigo: `datos <- read.csv("simce2m2024_rbd_preliminar.csv",
-                  sep = ";",
-                  encoding = "latin1")
-
-datos <- subset(datos,
-                prom_mate2m_rbd > 0 &
-                prom_lect2m_rbd > 0)
-
-datos$tipo_colegio <- factor(datos$cod_depe2,
-                             levels = c(1, 2, 3, 4),
-                             labels = c("Municipal",
-                                        "Subvencionado",
-                                        "Particular_Pagado",
-                                        "Administracion_Delegada"))
-
-hist(datos$prom_mate2m_rbd,
-     main = "Distribución puntaje Matemática",
-     xlab = "Puntaje Matemática")
-
-boxplot(prom_mate2m_rbd ~ tipo_colegio,
-        data = datos,
-        main = "Matemática por tipo de colegio",
-        xlab = "Tipo de colegio",
-        ylab = "Puntaje")`,
-  },
-  {
-    id: "anova-aire",
-    tema: "ANOVA",
-    icono: "📊",
-    base: "Calidad del aire - Cerrillos",
-    objetivo:
-      "Comparar si los registros validados presentan diferencias entre meses.",
-    instrucciones: [
-      "Cargar la base limpia de calidad del aire.",
-      "Definir registros validados como variable respuesta.",
-      "Definir mes como factor.",
-      "Ajustar un modelo ANOVA e interpretar.",
-    ],
-    codigo: `datos <- read.csv("datos_final_aire_limpios.csv",
-                  sep = ",",
-                  header = TRUE)
-
-datos$mes <- factor(datos$mes)
-
-modelo <- aov(reg_validos ~ mes, data = datos)
-
-summary(modelo)
-
-boxplot(reg_validos ~ mes,
-        data = datos,
-        main = "Registros validados por mes",
-        xlab = "Mes",
-        ylab = "Registros validados")`,
-  },
-  {
-    id: "regresion-casen",
-    tema: "Regresión lineal",
-    icono: "📉",
-    base: "CASEN 2024",
-    objetivo:
-      "Estudiar la relación entre años de escolaridad e ingreso total.",
-    instrucciones: [
-      "Cargar CASEN.",
-      "Seleccionar escolaridad e ingreso.",
-      "Filtrar datos válidos.",
-      "Ajustar una regresión lineal simple.",
-    ],
-    codigo: `# Antes de correr este código, carga la base CASEN 2024 en R.
-# Debe existir un objeto llamado casen_2024.
-
-library(haven)
-
-if (!exists("casen_2024")) {
-  stop("Primero carga CASEN 2024 y verifica que el objeto se llame casen_2024")
-}
-
-datos <- as.data.frame(casen_2024[, c("esc", "ytot")])
-
-for (v in names(datos)) {
-  if (inherits(datos[[v]], "haven_labelled") | inherits(datos[[v]], "labelled")) {
-    datos[[v]] <- as.numeric(zap_labels(datos[[v]]))
-  }
-}
-
-datos <- subset(datos,
-                !is.na(esc) &
-                !is.na(ytot) &
-                esc >= 0 &
-                ytot > 0)
-
-datos$log_ytot <- log1p(datos$ytot)
-
-modelo <- lm(log_ytot ~ esc, data = datos)
-
-summary(modelo)
-
-plot(datos$esc, datos$log_ytot,
-     xlab = "Años de escolaridad",
-     ylab = "Logaritmo del ingreso total")
-
-abline(modelo)`,
-  },
-
+  },,
   {
     id: "cep-91-2024",
     nombre: "Encuesta CEP 91 - 2024",
@@ -2372,6 +2223,42 @@ datos_final_cep_comparada <- cep_comparada`
 
 ];
 
+const areas = [
+  { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
+  { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
+  { nombre: "Vivienda", icono: "🏠", descripcion: "Bases para condiciones habitacionales, hacinamiento, tenencia y territorio.", color: "#92400e" },
+  { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores de salud.", color: "#be123c" },
+  { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
+  { nombre: "Economía", icono: "💰", descripcion: "Bases para PIB regional, actividad económica e indicadores macroeconómicos.", color: "#b45309" },
+  { nombre: "Medio ambiente", icono: "🌱", descripcion: "Bases para calidad del aire, clima, contaminación y análisis ambiental.", color: "#15803d" },
+  { nombre: "Agricultura", icono: "🌾", descripcion: "Bases para precios agrícolas, emergencias y actividad agropecuaria.", color: "#65a30d" },
+  { nombre: "Demografía", icono: "👥", descripcion: "Bases para población, nacimientos y estructura demográfica.", color: "#0891b2" },
+  { nombre: "Seguridad", icono: "⚖️", descripcion: "Bases para sanciones, registros administrativos y análisis legal.", color: "#475569" },
+  { nombre: "Turismo", icono: "🧳", descripcion: "Bases para empleo turístico y actividad económica asociada.", color: "#db2777" },
+  { nombre: "Pesca e industria", icono: "🐟", descripcion: "Bases para empleo, producción y actividad industrial pesquera.", color: "#0f766e" },
+];
+
+const fuentes = [
+  { nombre: "Agencia de Calidad de la Educación", descripcion: "Bases educativas oficiales.", url: "https://informacionestadistica.agenciaeducacion.cl/#/bases" },
+  { nombre: "Observatorio Social", descripcion: "Información oficial de CASEN.", url: "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2024" },
+  { nombre: "DEIS / MINSAL", descripcion: "Datos abiertos de salud, egresos hospitalarios, nacimientos y estadísticas sanitarias.", url: "https://deis.minsal.cl/#datos-abiertos" },
+  { nombre: "Datos.gob.cl", descripcion: "Portal de datos abiertos del Estado de Chile.", url: "https://datos.gob.cl" },
+  { nombre: "INE", descripcion: "Bases estadísticas oficiales, incluyendo Encuesta Nacional de Empleo.", url: "https://www.ine.gob.cl/estadisticas-por-tema/mercado-laboral" },
+  { nombre: "Banco Central de Chile", descripcion: "Base de Datos Estadísticos con indicadores macroeconómicos y PIB regional.", url: "https://si3.bcentral.cl/Siete" },
+  { nombre: "SINCA", descripcion: "Sistema de Información Nacional de Calidad del Aire.", url: "https://sinca.mma.gob.cl/index.php/" },
+  { nombre: "ODEPA / Datos ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://datos.odepa.gob.cl" },
+  { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
+  { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
+  {
+    nombre: "Opinión pública",
+    descripcion: "Encuestas de opinión pública, confianza institucional, democracia, política y actitudes sociales.",
+    color: "#7c3aed",
+    icono: "🗳️"
+  },
+];
+
+const ejercicios = [];
+
 const filtrosDisponibles = {
   tamano: ["Pequeña", "Mediana", "Grande"],
   analisis: ["Exploratorio", "t-test", "ANOVA", "Regresión", "Regresión lineal", "Regresión logística", "Correlación", "Análisis temporal básico", "Tasas", "Comparación de proporciones", "Tablas de frecuencia"],
@@ -2468,118 +2355,6 @@ function coincideBusquedaEjercicio(exercise, busqueda) {
   return normalizarTexto(textoBuscableEjercicio(exercise)).includes(q);
 }
 
-
-function GlobalSearch({ onOpenDataset }) {
-  const [busqueda, setBusqueda] = useState("");
-  const [abierto, setAbierto] = useState(false);
-
-  const resultados = useMemo(() => {
-    const q = busqueda.trim();
-    if (!q) return [];
-    return datasets.filter((d) => coincideBusquedaDataset(d, q)).slice(0, 8);
-  }, [busqueda]);
-
-  const abrirResultado = (dataset) => {
-    setBusqueda("");
-    setAbierto(false);
-    onOpenDataset(dataset, "inicio");
-  };
-
-  return (
-    <div style={{ position: "relative", width: "min(360px, 100%)" }}>
-      <input
-        aria-label="Buscar datasets"
-        style={{
-          width: "100%",
-          padding: "10px 12px",
-          borderRadius: "6px",
-          border: "1px solid #334155",
-          background: "#111827",
-          color: "white",
-          outline: "none",
-          fontSize: "14px",
-        }}
-        placeholder="Buscar dataset..."
-        value={busqueda}
-        onFocus={() => setAbierto(true)}
-        onChange={(e) => {
-          setBusqueda(e.target.value);
-          setAbierto(true);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && resultados.length > 0) {
-            abrirResultado(resultados[0]);
-          }
-          if (e.key === "Escape") setAbierto(false);
-        }}
-      />
-
-      {abierto && busqueda.trim() && (
-        <div
-          style={{
-            position: "absolute",
-            top: "46px",
-            right: 0,
-            width: "420px",
-            maxWidth: "90vw",
-            background: "white",
-            color: "#0f172a",
-            border: "1px solid #dbe3ef",
-            borderRadius: "8px",
-            boxShadow: "0 18px 40px rgba(15,23,42,0.18)",
-            zIndex: 20,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ padding: "10px 12px", borderBottom: "1px solid #e2e8f0", fontSize: "13px", color: "#64748b" }}>
-            {resultados.length > 0 ? `${resultados.length} resultado(s)` : "No se encontraron resultados"}
-          </div>
-          {resultados.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => abrirResultado(d)}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: "12px 14px",
-                border: "none",
-                borderBottom: "1px solid #eef2f7",
-                background: "white",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ fontWeight: 700, color: "#0f172a" }}>{d.nombre}</div>
-              <div style={{ fontSize: "13px", color: "#475569", marginTop: "3px" }}>{d.area} · {d.fuenteNombre}</div>
-            </button>
-          ))}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
-              setAbierto(false);
-              window.location.hash = "#/catalogo";
-            }}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              padding: "12px 14px",
-              border: "none",
-              background: "#f8fafc",
-              color: "#1d4ed8",
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            Ver catálogo completo
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function DatasetCard({ d, onOpenDataset }) {
   return (
     <div key={d.id} style={s.card}>
@@ -2635,7 +2410,6 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
           <div style={s.statCard}><p style={s.statNumber}>{datasets.length}</p><p style={s.statLabel}>datasets incorporados</p></div>
           <div style={s.statCard}><p style={s.statNumber}>{areas.length}</p><p style={s.statLabel}>áreas temáticas</p></div>
           <div style={s.statCard}><p style={s.statNumber}>{fuentes.length}</p><p style={s.statLabel}>fuentes oficiales</p></div>
-          <div style={s.statCard}><p style={s.statNumber}>{ejercicios.length}</p><p style={s.statLabel}>ejercicios sugeridos</p></div>
         </div>
       </div>
 
@@ -2666,21 +2440,6 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
 
       <div style={s.grid}>
         {resultadosBusqueda.map((d) => <DatasetCard key={d.id} d={d} onOpenDataset={onOpenDataset} />)}
-      </div>
-
-      <h2 id="ejercicios" style={{ ...s.title, marginTop: "40px" }}>Ejercicios sugeridos</h2>
-      <p style={s.sectionSubtitle}>Ejercicios organizados por tema. Cada uno puede abrirse como guía completa.</p>
-      <div style={s.grid}>
-        {ejercicios.map((e) => (
-          <div key={e.id} style={s.card}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={s.iconBox}>{e.icono}</div>
-              <h3 style={{ margin: 0 }}>{e.tema}</h3>
-            </div>
-            <p style={s.smallMuted}>{e.objetivo}</p>
-            <button style={s.button} onClick={() => onOpenExercise(e)}>Ver ejercicio completo</button>
-          </div>
-        ))}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", gap: "16px", marginTop: "40px" }}>
@@ -3161,15 +2920,12 @@ export default function App() {
           <h1 style={s.headerTitle}>Repertorio de Bases de Datos Chilenas</h1>
           <p style={s.headerSubtitle}>Plataforma académica para consulta, descarga y preparación de datos reales.</p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-          <GlobalSearch onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)} />
-          <nav style={s.nav}>
-            <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
-            <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
-            <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
-            <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
-          </nav>
-        </div>
+        <nav style={s.nav}>
+          <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
+          <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
+          <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
+          <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
+        </nav>
       </header>
 
       <main id="top" style={s.mainWrap}>
@@ -3225,5 +2981,6 @@ export default function App() {
     </div>
   );
 }
+
 
 

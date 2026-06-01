@@ -2008,218 +2008,6 @@ empleo_pesca$clase_industria <- factor(empleo_pesca$clase_industria)
 head(empleo_pesca)
 summary(empleo_pesca)`,
   },
-  {
-    id: "cep-91-2024",
-    nombre: "Encuesta CEP 91 - 2024",
-    area: "Opinión pública",
-    icono: "🗳️",
-    formato: "CSV",
-    tamano: "Mediana",
-    variables: ["sexo", "edad", "region", "educacion", "zona", "posicion_politica", "confianza", "democracia"],
-    fuente: "CEP Chile",
-    fuenteNombre: "Centro de Estudios Públicos",
-    descarga: "/archivos/base_91.csv",
-    fuenteOriginal: "https://www.cepchile.cl/opinion-publica/encuesta-cep/",
-    analisis: ["Exploratorio", "Tablas cruzadas", "Regresión logística"],
-    descripcion: "Encuesta de opinión pública aplicada en junio-julio de 2024, útil para estudiar percepción política, evaluación institucional, temas públicos y características sociodemográficas.",
-    contexto: "Esta base es especialmente útil para estudiantes de ciencia política porque permite trabajar con datos de opinión pública reales. Se puede analizar cómo varían las opiniones según edad, sexo, educación, zona, posición política u otras variables disponibles en la encuesta. Como es una encuesta, antes de analizar se debe revisar el cuestionario y el diccionario para entender qué significa cada código de respuesta.",
-    usos: "Permite practicar lectura de encuestas, recodificación de respuestas, tablas de frecuencia, cruces entre variables, gráficos de barras y modelos simples para respuestas binarias u ordinales.",
-    tecnicas: "Análisis exploratorio, tablas de contingencia, gráficos de barras, comparación de proporciones, chi-cuadrado y regresión logística si se construye una variable respuesta binaria.",
-    preguntas: [
-      "¿Cómo se distribuye la confianza en instituciones en la medición 2024?",
-      "¿Existen diferencias de opinión política según edad, sexo o nivel educacional?",
-      "¿Qué características se asocian con una mayor aprobación o desaprobación de ciertas instituciones?"
-    ],
-    sugerenciasFiltros: [
-      "Revisar primero el cuestionario para identificar las variables de opinión que se usarán.",
-      "Seleccionar solo variables sociodemográficas y una pregunta de opinión principal.",
-      "Recodificar respuestas como No sabe / No contesta a NA antes del análisis."
-    ],
-    script: `# Encuesta CEP 91 - 2024
-# Objetivo: cargar la base CEP 2024, revisar variables principales y dejar una base limpia
-# para iniciar análisis exploratorio de opinión pública.
-
-# 0. Paquetes útiles
-# install.packages("haven")
-library(haven)
-
-# 1. Cargar la base
-# Descarga y descomprime el archivo ZIP de la encuesta CEP 91.
-# Luego selecciona el archivo de datos desde tu computador.
-objetos_antes <- ls()
-archivo <- file.choose()
-
-if (grepl("\\.sav$", archivo, ignore.case = TRUE)) {
-  datos_cep <- read_sav(archivo)
-} else if (grepl("\\.dta$", archivo, ignore.case = TRUE)) {
-  datos_cep <- read_dta(archivo)
-} else if (grepl("\\.csv$", archivo, ignore.case = TRUE)) {
-  datos_cep <- read.csv(archivo, sep = ";", stringsAsFactors = FALSE)
-} else if (grepl("\\.RData$|\\.rda$", archivo, ignore.case = TRUE)) {
-  load(archivo)
-  objetos_nuevos <- setdiff(ls(), objetos_antes)
-  datos_cep <- get(objetos_nuevos[1])
-} else {
-  stop("Formato no reconocido. Usa un archivo .sav, .dta, .csv o .RData")
-}
-
-datos_cep <- as.data.frame(datos_cep)
-
-# 2. Quitar etiquetas tipo haven_labelled para evitar errores
-for (v in names(datos_cep)) {
-  if (inherits(datos_cep[[v]], "haven_labelled") | inherits(datos_cep[[v]], "labelled")) {
-    datos_cep[[v]] <- as.numeric(zap_labels(datos_cep[[v]]))
-  }
-}
-
-# 3. Revisar estructura general
-names(datos_cep)
-dim(datos_cep)
-summary(datos_cep)
-
-# 4. Buscar variables de interés
-# Como las encuestas CEP pueden cambiar nombres entre años, primero conviene buscar palabras clave.
-grep("sexo|genero|edad|region|educ|nivel|zona|voto|polit|confianza|gobierno|democr", 
-     names(datos_cep), value = TRUE, ignore.case = TRUE)
-
-# 5. Seleccionar variables principales disponibles
-variables_base <- grep("sexo|genero|edad|region|educ|nivel|zona|voto|polit|confianza|gobierno|democr", 
-                       names(datos_cep), value = TRUE, ignore.case = TRUE)
-
-cep_2024_limpia <- datos_cep[, variables_base, drop = FALSE]
-
-# 6. Reemplazar códigos típicos de no respuesta por NA
-# Ajusta estos códigos si el diccionario de la encuesta indica otros valores.
-codigos_invalidos <- c(8, 9, 88, 89, 98, 99, 888, 889, 998, 999, -8, -9, -88, -99)
-for (v in names(cep_2024_limpia)) {
-  if (is.numeric(cep_2024_limpia[[v]])) {
-    cep_2024_limpia[[v]][cep_2024_limpia[[v]] %in% codigos_invalidos] <- NA
-  }
-}
-
-# 7. Convertir variables categóricas a factor cuando tienen pocos valores
-for (v in names(cep_2024_limpia)) {
-  if (length(unique(na.omit(cep_2024_limpia[[v]]))) <= 15) {
-    cep_2024_limpia[[v]] <- factor(cep_2024_limpia[[v]])
-  }
-}
-
-# 8. Revisión final
-head(cep_2024_limpia)
-summary(cep_2024_limpia)
-colSums(is.na(cep_2024_limpia))
-
-# Base final para comenzar análisis exploratorio
-datos_final_cep_2024 <- cep_2024_limpia`
-  },
-  {
-    id: "cep-89-91-comparacion",
-    nombre: "Encuesta CEP 2023-2024 comparada",
-    area: "Opinión pública",
-    icono: "📊",
-    formato: "CSV",
-    tamano: "Mediana",
-    variables: ["sexo", "edad", "region", "educacion", "zona", "opinion_politica", "confianza", "democracia", "anio"],
-    fuente: "CEP Chile",
-    fuenteNombre: "Centro de Estudios Públicos",
-    descargas: ["/archivos/base_89.csv", "/archivos/base_91.csv"],
-    fuenteOriginal: "https://www.cepchile.cl/opinion-publica/encuesta-cep/",
-    analisis: ["Exploratorio", "Comparación temporal", "Tablas cruzadas"],
-    descripcion: "Comparación entre dos mediciones de la Encuesta CEP: junio-julio 2023 y junio-julio 2024. Sirve para observar cambios en opiniones, percepciones o evaluaciones entre años.",
-    contexto: "Esta ficha es más avanzada que usar una sola encuesta porque requiere comparar dos bases que no necesariamente tienen exactamente las mismas variables. El paso central es identificar variables comunes y revisar en el cuestionario si las preguntas mantienen el mismo significado entre 2023 y 2024.",
-    usos: "Permite analizar cambios descriptivos en el tiempo, comparar porcentajes entre mediciones y construir gráficos simples por año sin entrar en series de tiempo.",
-    tecnicas: "Análisis exploratorio, tablas porcentuales por año, gráficos de barras comparados, comparación de proporciones y chi-cuadrado si corresponde.",
-    preguntas: [
-      "¿Cambió la distribución de una opinión política entre 2023 y 2024?",
-      "¿Qué variables sociodemográficas se mantienen comparables entre ambas mediciones?",
-      "¿Los cambios observados son similares para distintos grupos de edad o educación?"
-    ],
-    sugerenciasFiltros: [
-      "Usar solo variables presentes en ambas bases.",
-      "Confirmar en los cuestionarios que la pregunta tenga el mismo sentido en ambos años.",
-      "Crear una variable año para distinguir 2023 y 2024 antes de unir las bases."
-    ],
-    script: `# Encuestas CEP 2023 y 2024 comparadas
-# Objetivo: unir ambas bases usando solo variables comunes y crear una variable de año.
-# Esto sirve para comparar cambios sin hacer series de tiempo.
-
-library(haven)
-
-cargar_cep <- function() {
-  objetos_antes <- ls(envir = .GlobalEnv)
-  archivo <- file.choose()
-  if (grepl("\\.sav$", archivo, ignore.case = TRUE)) {
-    base <- read_sav(archivo)
-  } else if (grepl("\\.dta$", archivo, ignore.case = TRUE)) {
-    base <- read_dta(archivo)
-  } else if (grepl("\\.csv$", archivo, ignore.case = TRUE)) {
-    base <- read.csv(archivo, sep = ";", stringsAsFactors = FALSE)
-  } else if (grepl("\\.RData$|\\.rda$", archivo, ignore.case = TRUE)) {
-    load(archivo, envir = .GlobalEnv)
-    objetos_nuevos <- setdiff(ls(envir = .GlobalEnv), objetos_antes)
-    base <- get(objetos_nuevos[1], envir = .GlobalEnv)
-  } else {
-    stop("Formato no reconocido. Usa .sav, .dta, .csv o .RData")
-  }
-  base <- as.data.frame(base)
-  for (v in names(base)) {
-    if (inherits(base[[v]], "haven_labelled") | inherits(base[[v]], "labelled")) {
-      base[[v]] <- as.numeric(zap_labels(base[[v]]))
-    }
-  }
-  return(base)
-}
-
-# 1. Cargar primero CEP 2023 y luego CEP 2024
-datos_2023 <- cargar_cep()
-datos_2024 <- cargar_cep()
-
-# 2. Identificar variables comunes
-variables_comunes <- intersect(names(datos_2023), names(datos_2024))
-length(variables_comunes)
-variables_comunes
-
-# 3. Buscar variables comparables de interés político y sociodemográfico
-variables_interes <- grep("sexo|genero|edad|region|educ|nivel|zona|voto|polit|confianza|gobierno|democr", 
-                          variables_comunes, value = TRUE, ignore.case = TRUE)
-variables_interes
-
-# 4. Crear bases comparables
-cep_2023 <- datos_2023[, variables_interes, drop = FALSE]
-cep_2024 <- datos_2024[, variables_interes, drop = FALSE]
-
-cep_2023$anio <- 2023
-cep_2024$anio <- 2024
-
-# 5. Unir ambas bases
-cep_comparada <- rbind(cep_2023, cep_2024)
-
-# 6. Reemplazar códigos típicos de no respuesta por NA
-codigos_invalidos <- c(8, 9, 88, 89, 98, 99, 888, 889, 998, 999, -8, -9, -88, -99)
-for (v in names(cep_comparada)) {
-  if (is.numeric(cep_comparada[[v]])) {
-    cep_comparada[[v]][cep_comparada[[v]] %in% codigos_invalidos] <- NA
-  }
-}
-
-# 7. Convertir año y variables categóricas
-ep_anio <- cep_comparada$anio
-for (v in names(cep_comparada)) {
-  if (length(unique(na.omit(cep_comparada[[v]]))) <= 15) {
-    cep_comparada[[v]] <- factor(cep_comparada[[v]])
-  }
-}
-cep_comparada$anio <- factor(ep_anio)
-
-# 8. Revisión final
-head(cep_comparada)
-summary(cep_comparada)
-table(cep_comparada$anio)
-colSums(is.na(cep_comparada))
-
-# Base final para comparar 2023 y 2024
-datos_final_cep_comparada <- cep_comparada`
-  },
 ];
 
 const areas = [
@@ -2369,6 +2157,218 @@ plot(datos$esc, datos$log_ytot,
 abline(modelo)`,
   },
 
+  {
+    id: "cep-91-2024",
+    nombre: "Encuesta CEP 91 - 2024",
+    area: "Opinión pública",
+    icono: "🗳️",
+    formato: "CSV",
+    tamano: "Mediana",
+    variables: "Variables políticas, opinión pública y sociodemográficas",
+    fuente: "CEP Chile",
+    fuenteNombre: "Centro de Estudios Públicos",
+    descarga: "/archivos/base_91.csv",
+    fuenteOriginal: "https://www.cepchile.cl/opinion-publica/encuesta-cep/",
+    analisis: ["Exploratorio", "Tablas cruzadas", "Regresión logística"],
+    descripcion: "Encuesta de opinión pública aplicada en junio-julio de 2024, útil para estudiar percepción política, evaluación institucional, temas públicos y características sociodemográficas.",
+    contexto: "Esta base es especialmente útil para estudiantes de ciencia política porque permite trabajar con datos de opinión pública reales. Se puede analizar cómo varían las opiniones según edad, sexo, educación, zona, posición política u otras variables disponibles en la encuesta. Como es una encuesta, antes de analizar se debe revisar el cuestionario y el diccionario para entender qué significa cada código de respuesta.",
+    usos: "Permite practicar lectura de encuestas, recodificación de respuestas, tablas de frecuencia, cruces entre variables, gráficos de barras y modelos simples para respuestas binarias u ordinales.",
+    tecnicas: "Análisis exploratorio, tablas de contingencia, gráficos de barras, comparación de proporciones, chi-cuadrado y regresión logística si se construye una variable respuesta binaria.",
+    preguntas: [
+      "¿Cómo se distribuye la confianza en instituciones en la medición 2024?",
+      "¿Existen diferencias de opinión política según edad, sexo o nivel educacional?",
+      "¿Qué características se asocian con una mayor aprobación o desaprobación de ciertas instituciones?"
+    ],
+    sugerenciasFiltros: [
+      "Revisar primero el cuestionario para identificar las variables de opinión que se usarán.",
+      "Seleccionar solo variables sociodemográficas y una pregunta de opinión principal.",
+      "Recodificar respuestas como No sabe / No contesta a NA antes del análisis."
+    ],
+    script: `# Encuesta CEP 91 - 2024
+# Objetivo: cargar la base CEP 2024, revisar variables principales y dejar una base limpia
+# para iniciar análisis exploratorio de opinión pública.
+
+# 0. Paquetes útiles
+# install.packages("haven")
+library(haven)
+
+# 1. Cargar la base
+# Descarga y descomprime el archivo ZIP de la encuesta CEP 91.
+# Luego selecciona el archivo de datos desde tu computador.
+objetos_antes <- ls()
+archivo <- file.choose()
+
+if (grepl("\\.sav$", archivo, ignore.case = TRUE)) {
+  datos_cep <- read_sav(archivo)
+} else if (grepl("\\.dta$", archivo, ignore.case = TRUE)) {
+  datos_cep <- read_dta(archivo)
+} else if (grepl("\\.csv$", archivo, ignore.case = TRUE)) {
+  datos_cep <- read.csv(archivo, sep = ";", stringsAsFactors = FALSE)
+} else if (grepl("\\.RData$|\\.rda$", archivo, ignore.case = TRUE)) {
+  load(archivo)
+  objetos_nuevos <- setdiff(ls(), objetos_antes)
+  datos_cep <- get(objetos_nuevos[1])
+} else {
+  stop("Formato no reconocido. Usa un archivo .sav, .dta, .csv o .RData")
+}
+
+datos_cep <- as.data.frame(datos_cep)
+
+# 2. Quitar etiquetas tipo haven_labelled para evitar errores
+for (v in names(datos_cep)) {
+  if (inherits(datos_cep[[v]], "haven_labelled") | inherits(datos_cep[[v]], "labelled")) {
+    datos_cep[[v]] <- as.numeric(zap_labels(datos_cep[[v]]))
+  }
+}
+
+# 3. Revisar estructura general
+names(datos_cep)
+dim(datos_cep)
+summary(datos_cep)
+
+# 4. Buscar variables de interés
+# Como las encuestas CEP pueden cambiar nombres entre años, primero conviene buscar palabras clave.
+grep("sexo|genero|edad|region|educ|nivel|zona|voto|polit|confianza|gobierno|democr", 
+     names(datos_cep), value = TRUE, ignore.case = TRUE)
+
+# 5. Seleccionar variables principales disponibles
+variables_base <- grep("sexo|genero|edad|region|educ|nivel|zona|voto|polit|confianza|gobierno|democr", 
+                       names(datos_cep), value = TRUE, ignore.case = TRUE)
+
+cep_2024_limpia <- datos_cep[, variables_base, drop = FALSE]
+
+# 6. Reemplazar códigos típicos de no respuesta por NA
+# Ajusta estos códigos si el diccionario de la encuesta indica otros valores.
+codigos_invalidos <- c(8, 9, 88, 89, 98, 99, 888, 889, 998, 999, -8, -9, -88, -99)
+for (v in names(cep_2024_limpia)) {
+  if (is.numeric(cep_2024_limpia[[v]])) {
+    cep_2024_limpia[[v]][cep_2024_limpia[[v]] %in% codigos_invalidos] <- NA
+  }
+}
+
+# 7. Convertir variables categóricas a factor cuando tienen pocos valores
+for (v in names(cep_2024_limpia)) {
+  if (length(unique(na.omit(cep_2024_limpia[[v]]))) <= 15) {
+    cep_2024_limpia[[v]] <- factor(cep_2024_limpia[[v]])
+  }
+}
+
+# 8. Revisión final
+head(cep_2024_limpia)
+summary(cep_2024_limpia)
+colSums(is.na(cep_2024_limpia))
+
+# Base final para comenzar análisis exploratorio
+datos_final_cep_2024 <- cep_2024_limpia`
+  },
+  {
+    id: "cep-89-91-comparacion",
+    nombre: "Encuesta CEP 2023-2024 comparada",
+    area: "Opinión pública",
+    icono: "📊",
+    formato: "CSV",
+    tamano: "Mediana",
+    variables: "Variables comunes entre CEP 89 y CEP 91",
+    fuente: "CEP Chile",
+    fuenteNombre: "Centro de Estudios Públicos",
+    descargas: ["/archivos/base_89.csv", "/archivos/base_91.csv"],
+    fuenteOriginal: "https://www.cepchile.cl/opinion-publica/encuesta-cep/",
+    analisis: ["Exploratorio", "Comparación temporal", "Tablas cruzadas"],
+    descripcion: "Comparación entre dos mediciones de la Encuesta CEP: junio-julio 2023 y junio-julio 2024. Sirve para observar cambios en opiniones, percepciones o evaluaciones entre años.",
+    contexto: "Esta ficha es más avanzada que usar una sola encuesta porque requiere comparar dos bases que no necesariamente tienen exactamente las mismas variables. El paso central es identificar variables comunes y revisar en el cuestionario si las preguntas mantienen el mismo significado entre 2023 y 2024.",
+    usos: "Permite analizar cambios descriptivos en el tiempo, comparar porcentajes entre mediciones y construir gráficos simples por año sin entrar en series de tiempo.",
+    tecnicas: "Análisis exploratorio, tablas porcentuales por año, gráficos de barras comparados, comparación de proporciones y chi-cuadrado si corresponde.",
+    preguntas: [
+      "¿Cambió la distribución de una opinión política entre 2023 y 2024?",
+      "¿Qué variables sociodemográficas se mantienen comparables entre ambas mediciones?",
+      "¿Los cambios observados son similares para distintos grupos de edad o educación?"
+    ],
+    sugerenciasFiltros: [
+      "Usar solo variables presentes en ambas bases.",
+      "Confirmar en los cuestionarios que la pregunta tenga el mismo sentido en ambos años.",
+      "Crear una variable año para distinguir 2023 y 2024 antes de unir las bases."
+    ],
+    script: `# Encuestas CEP 2023 y 2024 comparadas
+# Objetivo: unir ambas bases usando solo variables comunes y crear una variable de año.
+# Esto sirve para comparar cambios sin hacer series de tiempo.
+
+library(haven)
+
+cargar_cep <- function() {
+  objetos_antes <- ls(envir = .GlobalEnv)
+  archivo <- file.choose()
+  if (grepl("\\.sav$", archivo, ignore.case = TRUE)) {
+    base <- read_sav(archivo)
+  } else if (grepl("\\.dta$", archivo, ignore.case = TRUE)) {
+    base <- read_dta(archivo)
+  } else if (grepl("\\.csv$", archivo, ignore.case = TRUE)) {
+    base <- read.csv(archivo, sep = ";", stringsAsFactors = FALSE)
+  } else if (grepl("\\.RData$|\\.rda$", archivo, ignore.case = TRUE)) {
+    load(archivo, envir = .GlobalEnv)
+    objetos_nuevos <- setdiff(ls(envir = .GlobalEnv), objetos_antes)
+    base <- get(objetos_nuevos[1], envir = .GlobalEnv)
+  } else {
+    stop("Formato no reconocido. Usa .sav, .dta, .csv o .RData")
+  }
+  base <- as.data.frame(base)
+  for (v in names(base)) {
+    if (inherits(base[[v]], "haven_labelled") | inherits(base[[v]], "labelled")) {
+      base[[v]] <- as.numeric(zap_labels(base[[v]]))
+    }
+  }
+  return(base)
+}
+
+# 1. Cargar primero CEP 2023 y luego CEP 2024
+datos_2023 <- cargar_cep()
+datos_2024 <- cargar_cep()
+
+# 2. Identificar variables comunes
+variables_comunes <- intersect(names(datos_2023), names(datos_2024))
+length(variables_comunes)
+variables_comunes
+
+# 3. Buscar variables comparables de interés político y sociodemográfico
+variables_interes <- grep("sexo|genero|edad|region|educ|nivel|zona|voto|polit|confianza|gobierno|democr", 
+                          variables_comunes, value = TRUE, ignore.case = TRUE)
+variables_interes
+
+# 4. Crear bases comparables
+cep_2023 <- datos_2023[, variables_interes, drop = FALSE]
+cep_2024 <- datos_2024[, variables_interes, drop = FALSE]
+
+cep_2023$anio <- 2023
+cep_2024$anio <- 2024
+
+# 5. Unir ambas bases
+cep_comparada <- rbind(cep_2023, cep_2024)
+
+# 6. Reemplazar códigos típicos de no respuesta por NA
+codigos_invalidos <- c(8, 9, 88, 89, 98, 99, 888, 889, 998, 999, -8, -9, -88, -99)
+for (v in names(cep_comparada)) {
+  if (is.numeric(cep_comparada[[v]])) {
+    cep_comparada[[v]][cep_comparada[[v]] %in% codigos_invalidos] <- NA
+  }
+}
+
+# 7. Convertir año y variables categóricas
+ep_anio <- cep_comparada$anio
+for (v in names(cep_comparada)) {
+  if (length(unique(na.omit(cep_comparada[[v]]))) <= 15) {
+    cep_comparada[[v]] <- factor(cep_comparada[[v]])
+  }
+}
+cep_comparada$anio <- factor(ep_anio)
+
+# 8. Revisión final
+head(cep_comparada)
+summary(cep_comparada)
+table(cep_comparada$anio)
+colSums(is.na(cep_comparada))
+
+# Base final para comparar 2023 y 2024
+datos_final_cep_comparada <- cep_comparada`
+  },
 
 ];
 
@@ -2915,8 +2915,10 @@ function getCargaCodigo(dataset) {
 
 function buildDatasetGuide(dataset) {
   const archivo = getArchivoNombre(dataset);
-  const vars = dataset.variables.slice(0, 10).map((v) => `  "${v}"`).join(",\n");
-  const isLocal = Boolean(dataset.descarga);
+  const variablesSeguras = Array.isArray(dataset?.variables) ? dataset.variables : [];
+  const analisisSeguros = Array.isArray(dataset?.analisis) ? dataset.analisis : [];
+  const vars = variablesSeguras.slice(0, 10).map((v) => `  "${v}"`).join(",\n");
+  const isLocal = Boolean(dataset?.descarga || dataset?.descargas);
 
   return [
     {
@@ -2937,7 +2939,7 @@ function buildDatasetGuide(dataset) {
       titulo: "Seleccionar variables principales",
       texto: "Para comenzar, se trabaja con un subconjunto de variables que tienen sentido para preguntas simples. Esto hace que la base sea más manejable para estudiantes que están partiendo.",
       codigo: `# Variables sugeridas para esta base\nvariables_principales <- c(\n${vars}\n)\n\nvariables_principales`,
-      resultado: `La base queda orientada a la unidad de análisis: ${dataset.unidad}.`
+      resultado: `La base queda orientada a la unidad de análisis: ${dataset.unidad || "registros de la base"}.`
     },
     {
       titulo: "Limpiar y transformar variables",
@@ -2949,13 +2951,29 @@ function buildDatasetGuide(dataset) {
       titulo: "Primer análisis exploratorio sugerido",
       texto: "Después de limpiar, se recomienda partir con tablas, resúmenes y gráficos simples antes de pensar en modelos estadísticos.",
       codigo: `# Algunas ideas iniciales\nsummary(datos)\n\n# Para variables categóricas\n# table(datos$variable_categorica)\n\n# Para variables numéricas\n# hist(datos$variable_numerica)\n# boxplot(datos$variable_numerica ~ datos$grupo)`,
-      resultado: `Desde aquí se puede avanzar a: ${dataset.analisis.join(", ")}.`
+      resultado: `Desde aquí se puede avanzar a: ${analisisSeguros.join(", ") || "análisis exploratorio"}.`
     }
   ];
 }
 
 function DatasetPage({ dataset, onBack }) {
+  if (!dataset) {
+    return (
+      <div>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver</button>
+        <div style={s.card}>
+          <h2>No se encontró la ficha del dataset</h2>
+          <p style={{ color: "#475569" }}>Vuelve al catálogo y selecciona nuevamente la base de datos.</p>
+        </div>
+      </div>
+    );
+  }
+
   const guia = buildDatasetGuide(dataset);
+  const tecnicasSeguras = Array.isArray(dataset.tecnicas) ? dataset.tecnicas : (Array.isArray(dataset.analisis) ? dataset.analisis : []);
+  const variablesSeguras = Array.isArray(dataset.variables) ? dataset.variables : [];
+  const preguntasSeguras = Array.isArray(dataset.preguntas) ? dataset.preguntas : [];
+  const filtrosSeguros = Array.isArray(dataset.sugerenciasFiltros) ? dataset.sugerenciasFiltros : [];
 
   return (
     <div>
@@ -2963,17 +2981,17 @@ function DatasetPage({ dataset, onBack }) {
         <button style={s.buttonAlt} onClick={onBack}>← Volver</button>
       </div>
       <div style={s.heroFormal}>
-        <p style={s.eyebrow}>{dataset.area}</p>
+        <p style={s.eyebrow}>{dataset.area || "Área no especificada"}</p>
         <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>{dataset.nombre}</h1>
-        <p style={s.brandText}>{dataset.contexto}</p>
+        <p style={s.brandText}>{dataset.contexto || dataset.descripcion}</p>
       </div>
       <div style={s.twoCol}>
         <div>
           <div style={s.card}>
             <h2 style={{ marginTop: 0 }}>Contexto</h2>
-            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.contexto}</p>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.contexto || dataset.descripcion}</p>
             <h3>Usos posibles</h3>
-            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.usos}</p>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.usos || "Base útil para iniciar análisis descriptivo, comparación de grupos y construcción de preguntas de investigación."}</p>
           </div>
 
           <div style={{ ...s.card, marginTop: "18px" }}>
@@ -3003,40 +3021,40 @@ function DatasetPage({ dataset, onBack }) {
             <p style={{ color: "#475569", marginTop: 0 }}>
               Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo.
             </p>
-            <pre style={s.pre}>{dataset.script}</pre>
+            <pre style={s.pre}>{dataset.script || "# Script pendiente de completar para esta base"}</pre>
           </div>
         </div>
         <div>
           <div style={s.card}>
             <h2 style={{ marginTop: 0 }}>Información del dataset</h2>
-            <p><strong>Área:</strong> {dataset.area}</p>
-            <p><strong>Fuente:</strong> {dataset.fuenteNombre}</p>
-            <p><strong>Formato:</strong> {dataset.formato}</p>
-            <p><strong>Tamaño:</strong> {dataset.tamano}</p>
-            <p><strong>Unidad de análisis:</strong> {dataset.unidad}</p>
+            <p><strong>Área:</strong> {dataset.area || "Área no especificada"}</p>
+            <p><strong>Fuente:</strong> {dataset.fuenteNombre || "Fuente oficial"}</p>
+            <p><strong>Formato:</strong> {dataset.formato || "Archivo de datos"}</p>
+            <p><strong>Tamaño:</strong> {dataset.tamano || "No especificado"}</p>
+            <p><strong>Unidad de análisis:</strong> {dataset.unidad || "Registros de la base"}</p>
           </div>
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Técnicas recomendadas</h2>
-            {dataset.tecnicas.map((t) => <span key={t} style={s.badge}>{t}</span>)}
+            {tecnicasSeguras.map((t) => <span key={t} style={s.badge}>{t}</span>)}
           </div>
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Variables clave</h2>
-            {dataset.variables.map((v) => <span key={v} style={s.badge}>{v}</span>)}
+            {variablesSeguras.map((v) => <span key={v} style={s.badge}>{v}</span>)}
           </div>
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Preguntas de investigación</h2>
             <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
-              {dataset.preguntas.map((p) => <li key={p}>{p}</li>)}
+              {preguntasSeguras.map((p) => <li key={p}>{p}</li>)}
             </ul>
           </div>
-          {dataset.sugerenciasFiltros && (
+          {filtrosSeguros.length > 0 && (
             <div style={{ ...s.card, marginTop: "18px" }}>
               <h2 style={{ marginTop: 0 }}>Filtros útiles para adaptar la base</h2>
               <p style={{ color: "#475569", lineHeight: 1.6, marginTop: 0 }}>
                 Estas ideas sirven para que cada estudiante pueda acotar la base según su pregunta de investigación.
               </p>
               <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
-                {dataset.sugerenciasFiltros.map((p) => <li key={p}><code>{p}</code></li>)}
+                {filtrosSeguros.map((p) => <li key={p}><code>{p}</code></li>)}
               </ul>
             </div>
           )}

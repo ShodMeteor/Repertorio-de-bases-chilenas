@@ -2013,6 +2013,7 @@ summary(empleo_pesca)`,
 const areas = [
   { nombre: "Educación", icono: "🎓", descripcion: "Bases para rendimiento académico y contexto escolar.", color: "#1d4ed8" },
   { nombre: "Datos sociales", icono: "📊", descripcion: "Bases para ingreso, pobreza, escolaridad, salud y desigualdad.", color: "#047857" },
+  { nombre: "Opinión pública", icono: "🏛️", descripcion: "Encuestas de opinión, percepciones políticas, confianza institucional y comparación entre mediciones.", color: "#4338ca" },
   { nombre: "Vivienda", icono: "🏠", descripcion: "Bases para condiciones habitacionales, hacinamiento, tenencia y territorio.", color: "#92400e" },
   { nombre: "Salud", icono: "🏥", descripcion: "Bases para egresos hospitalarios, mortalidad e indicadores de salud.", color: "#be123c" },
   { nombre: "Trabajo", icono: "💼", descripcion: "Bases para ocupación, desocupación, informalidad y condiciones laborales.", color: "#7c3aed" },
@@ -2036,6 +2037,7 @@ const fuentes = [
   { nombre: "ODEPA / Datos ODEPA", descripcion: "Información de precios agrícolas y mercados agropecuarios.", url: "https://datos.odepa.gob.cl" },
   { nombre: "Dirección Meteorológica de Chile", descripcion: "Datos meteorológicos, temperaturas y precipitación.", url: "https://datos.gob.cl" },
   { nombre: "Subsecretaría de Pesca y Acuicultura", descripcion: "Datos sectoriales sobre pesca, acuicultura y empleo en plantas de proceso.", url: "https://datos.gob.cl" },
+  { nombre: "Centro de Estudios Públicos", descripcion: "Encuestas nacionales de opinión pública y documentación asociada.", url: "https://www.cepchile.cl/opinion-publica/encuesta-cep/" },
 ];
 
 const ejercicios = [
@@ -2464,6 +2466,118 @@ function coincideBusquedaEjercicio(exercise, busqueda) {
   const q = normalizarTexto(busqueda);
   if (!q) return true;
   return normalizarTexto(textoBuscableEjercicio(exercise)).includes(q);
+}
+
+
+function GlobalSearch({ onOpenDataset }) {
+  const [busqueda, setBusqueda] = useState("");
+  const [abierto, setAbierto] = useState(false);
+
+  const resultados = useMemo(() => {
+    const q = busqueda.trim();
+    if (!q) return [];
+    return datasets.filter((d) => coincideBusquedaDataset(d, q)).slice(0, 8);
+  }, [busqueda]);
+
+  const abrirResultado = (dataset) => {
+    setBusqueda("");
+    setAbierto(false);
+    onOpenDataset(dataset, "inicio");
+  };
+
+  return (
+    <div style={{ position: "relative", width: "min(360px, 100%)" }}>
+      <input
+        aria-label="Buscar datasets"
+        style={{
+          width: "100%",
+          padding: "10px 12px",
+          borderRadius: "6px",
+          border: "1px solid #334155",
+          background: "#111827",
+          color: "white",
+          outline: "none",
+          fontSize: "14px",
+        }}
+        placeholder="Buscar dataset..."
+        value={busqueda}
+        onFocus={() => setAbierto(true)}
+        onChange={(e) => {
+          setBusqueda(e.target.value);
+          setAbierto(true);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && resultados.length > 0) {
+            abrirResultado(resultados[0]);
+          }
+          if (e.key === "Escape") setAbierto(false);
+        }}
+      />
+
+      {abierto && busqueda.trim() && (
+        <div
+          style={{
+            position: "absolute",
+            top: "46px",
+            right: 0,
+            width: "420px",
+            maxWidth: "90vw",
+            background: "white",
+            color: "#0f172a",
+            border: "1px solid #dbe3ef",
+            borderRadius: "8px",
+            boxShadow: "0 18px 40px rgba(15,23,42,0.18)",
+            zIndex: 20,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ padding: "10px 12px", borderBottom: "1px solid #e2e8f0", fontSize: "13px", color: "#64748b" }}>
+            {resultados.length > 0 ? `${resultados.length} resultado(s)` : "No se encontraron resultados"}
+          </div>
+          {resultados.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => abrirResultado(d)}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "12px 14px",
+                border: "none",
+                borderBottom: "1px solid #eef2f7",
+                background: "white",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 700, color: "#0f172a" }}>{d.nombre}</div>
+              <div style={{ fontSize: "13px", color: "#475569", marginTop: "3px" }}>{d.area} · {d.fuenteNombre}</div>
+            </button>
+          ))}
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setAbierto(false);
+              window.location.hash = "#/catalogo";
+            }}
+            style={{
+              width: "100%",
+              textAlign: "left",
+              padding: "12px 14px",
+              border: "none",
+              background: "#f8fafc",
+              color: "#1d4ed8",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Ver catálogo completo
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function DatasetCard({ d, onOpenDataset }) {
@@ -3047,12 +3161,15 @@ export default function App() {
           <h1 style={s.headerTitle}>Repertorio de Bases de Datos Chilenas</h1>
           <p style={s.headerSubtitle}>Plataforma académica para consulta, descarga y preparación de datos reales.</p>
         </div>
-        <nav style={s.nav}>
-          <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
-          <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
-          <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
-          <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
-        </nav>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
+          <GlobalSearch onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)} />
+          <nav style={s.nav}>
+            <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
+            <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
+            <span style={s.navItem} onClick={() => scrollToSection("ejercicios")}>Ejercicios</span>
+            <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
+          </nav>
+        </div>
       </header>
 
       <main id="top" style={s.mainWrap}>

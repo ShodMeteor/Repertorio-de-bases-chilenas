@@ -3278,6 +3278,7 @@ export default function App() {
   const [datasetActual, setDatasetActual] = useState(null);
   const [exerciseActual, setExerciseActual] = useState(null);
   const [origenDataset, setOrigenDataset] = useState("inicio");
+  const [busquedaActual, setBusquedaActual] = useState("");
 
   const aplicarRuta = () => {
     const hash = window.location.hash || "#/inicio";
@@ -3305,6 +3306,8 @@ export default function App() {
     }
 
     if (vistaRuta === "busqueda") {
+      const terminoBusqueda = decodeURIComponent(partes.slice(1).join("/") || "");
+      setBusquedaActual(terminoBusqueda);
       setVista("busqueda");
       setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
       return;
@@ -3414,7 +3417,7 @@ export default function App() {
 
         {vista === "busqueda" && (
           <SearchResultsPage
-            query={decodeURIComponent(window.location.hash.replace("#/busqueda/", ""))}
+            query={busquedaActual}
             onBack={() => irA("#/inicio")}
             onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
           />

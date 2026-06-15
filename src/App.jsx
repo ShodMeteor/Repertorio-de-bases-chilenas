@@ -872,6 +872,146 @@ datos_final_casen_vivienda <- casen_vivienda
 `,
   },
   {
+    id: "sismos-chile-mapa-interactivo",
+    nombre: "Sismos en Chile - mapa interactivo y asignación regional",
+    area: "Medio ambiente",
+    icono: "🌎",
+    formato: "XLSX / CSV / HTML / R",
+    tamano: "Mediana",
+    analisis: ["Análisis espacial", "Mapas interactivos", "Exploratorio", "ANOVA", "Kruskal-Wallis", "Chi-cuadrado"],
+    fuenteNombre: "Base preparada para el repertorio / datos de sismos con coordenadas",
+    unidad: "Evento sísmico",
+    descripcion:
+      "Base de sismos en Chile con fecha, latitud, longitud, profundidad y magnitud. La plantilla permite asignar cada evento a una región mediante polígonos espaciales y construir un mapa interactivo por región.",
+    contexto:
+      "Esta ficha está pensada como un proyecto aplicado de análisis espacial. A diferencia de una base tradicional, aquí no basta con cargar datos y hacer tablas: primero se convierten las coordenadas en puntos, luego se cruzan con los polígonos de las regiones de Chile y finalmente se construye una variable de región asignada. Los sismos ubicados en el mar se mantienen en su coordenada real, pero se asignan a la región más cercana para poder resumir resultados por territorio.",
+    usos:
+      "Sirve para aprender a trabajar con coordenadas geográficas, mapas de Chile, asignación espacial por región, resúmenes territoriales, comparación entre macrozonas y visualización interactiva. También permite formular preguntas de investigación sobre magnitud, profundidad y concentración territorial de eventos sísmicos.",
+    tecnicas: [
+      "Lectura de coordenadas",
+      "Objetos espaciales sf",
+      "Cruce punto-polígono",
+      "Asignación por región cercana",
+      "Mapas coropléticos",
+      "Mapa interactivo HTML",
+      "ANOVA",
+      "Kruskal-Wallis",
+      "Chi-cuadrado"
+    ],
+    preguntas: [
+      "¿Qué regiones concentran mayor cantidad de sismos registrados?",
+      "¿La profundidad de los sismos cambia según macrozona?",
+      "¿La magnitud promedio varía entre regiones o macrozonas?",
+      "¿Qué regiones concentran más eventos de magnitud 5 o superior?",
+      "¿Cómo se deben tratar los sismos que ocurren en el mar al hacer análisis regional?"
+    ],
+    variables: [
+      "fecha",
+      "latitud",
+      "longitud",
+      "profundidad",
+      "magnitud",
+      "region_asignada",
+      "metodo_asignacion_region",
+      "macrozona",
+      "sismo_mayor_5",
+      "sismo_mayor_6"
+    ],
+    descarga: "/archivos/sismos_chile_limpios.xlsx",
+    fuenteOriginal: "https://www.sismologia.cl/",
+    mapaInteractivo: "/archivos/mapa_interactivo_regional_sismos.html",
+    scriptDescarga: "/archivos/script_sismos_chile.R",
+    archivos: [
+      { nombre: "Base original limpia (XLSX)", url: "/archivos/sismos_chile_limpios.xlsx", tipo: "descarga" },
+      { nombre: "Base con región asignada (CSV)", url: "/archivos/sismos_chile_con_region.csv", tipo: "descarga" },
+      { nombre: "Base y resúmenes finales (XLSX)", url: "/archivos/sismos_chile_con_region.xlsx", tipo: "descarga" },
+      { nombre: "Script completo en R", url: "/archivos/script_sismos_chile.R", tipo: "descarga" },
+      { nombre: "Abrir mapa interactivo", url: "/archivos/mapa_interactivo_regional_sismos.html", tipo: "abrir" }
+    ],
+    pasosProyecto: [
+      {
+        titulo: "1. Cargar la base de sismos",
+        texto: "Se parte desde una base limpia con fecha, latitud, longitud, profundidad y magnitud. Antes de mapear, se revisa que las coordenadas sean numéricas y que no existan valores faltantes en las variables principales."
+      },
+      {
+        titulo: "2. Descargar las regiones de Chile desde R",
+        texto: "El script usa geodata para obtener los polígonos administrativos de Chile. Cada región se representa como una geometría, es decir, una forma espacial que luego se cruza con los puntos de los sismos."
+      },
+      {
+        titulo: "3. Convertir cada sismo en un punto espacial",
+        texto: "Cada fila de la base se transforma en un punto usando longitud y latitud. Esto permite trabajar con sf y comparar la ubicación de cada evento con los límites regionales."
+      },
+      {
+        titulo: "4. Asignar región mediante cruce espacial",
+        texto: "Si el punto cae dentro de una región, se asigna esa región. Si cae en el mar, se asigna la región más cercana, pero sin mover el punto de su coordenada real."
+      },
+      {
+        titulo: "5. Crear resúmenes por región y macrozona",
+        texto: "Con la región asignada se calcula cantidad de sismos, magnitud promedio, magnitud máxima, profundidad promedio y cantidad de eventos sobre magnitud 5 o 6."
+      },
+      {
+        titulo: "6. Construir el mapa interactivo",
+        texto: "El mapa principal muestra Chile por regiones, coloreadas según cantidad de sismos. Al hacer clic en una región, se abre una ventana flotante con un mapa específico de esa región y sus eventos."
+      },
+      {
+        titulo: "7. Exportar resultados",
+        texto: "El script guarda una base final con región asignada, un Excel con resúmenes y un archivo HTML del mapa interactivo para abrirlo o subirlo a la página."
+      }
+    ],
+    sugerenciasFiltros: [
+      "Para analizar solo eventos fuertes: sismos_fuertes <- subset(sismos_final, magnitud >= 5)",
+      "Para trabajar una región: sismos_valparaiso <- subset(sismos_final, region_asignada == 'Valparaíso')",
+      "Para comparar profundidad entre macrozonas: kruskal.test(profundidad ~ macrozona, data = sismos_final)",
+      "Para revisar sismos en el mar: table(sismos_final$metodo_asignacion_region)"
+    ],
+    script: `# ============================================================
+# DATASET: Sismos en Chile
+# Objetivo: asignar región a cada sismo y construir mapas
+# ============================================================
+
+# Esta ficha usa un script más largo que las demás porque incluye:
+# 1. lectura de la base de sismos;
+# 2. descarga de polígonos regionales de Chile;
+# 3. conversión de coordenadas a puntos espaciales;
+# 4. asignación de región por cruce espacial o región más cercana;
+# 5. creación de resúmenes por región y macrozona;
+# 6. generación de un mapa interactivo HTML.
+
+# Descarga el script completo desde el botón "Script completo en R".
+# El archivo esperado se llama:
+# script_sismos_chile.R
+
+# Paquetes principales usados:
+library(readxl)
+library(writexl)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(geodata)
+library(terra)
+library(jsonlite)
+
+# Base de entrada esperada:
+sismos <- readxl::read_excel("sismos_chile_limpios.xlsx", sheet = "Datos_sismos")
+
+# El script completo realiza, en términos generales:
+# - limpieza de nombres de columnas;
+# - conversión de latitud, longitud, profundidad y magnitud a numéricas;
+# - descarga de regiones de Chile con geodata::gadm(country = "CHL", level = 1);
+# - transformación de sismos a puntos sf;
+# - cruce espacial con st_join(..., join = st_within);
+# - asignación de región más cercana para sismos ubicados en el mar;
+# - creación de macrozona;
+# - exportación de sismos_chile_con_region.csv y sismos_chile_con_region.xlsx;
+# - creación del mapa_interactivo_regional_sismos.html.
+
+# Nota metodológica clave:
+# Los sismos ubicados en el mar no se mueven dentro de la región.
+# Se mantienen en su coordenada real y solo se asignan a la región más cercana
+# para construir resúmenes territoriales.`
+  },
+
+  {
     id: "aire-cerrillos",
     nombre: "Calidad del aire - Cerrillos",
     area: "Medio ambiente",
@@ -3131,6 +3271,8 @@ function DatasetPage({ dataset, onBack }) {
   const variablesSeguras = Array.isArray(dataset.variables) ? dataset.variables : [];
   const preguntasSeguras = Array.isArray(dataset.preguntas) ? dataset.preguntas : [];
   const filtrosSeguros = Array.isArray(dataset.sugerenciasFiltros) ? dataset.sugerenciasFiltros : [];
+  const pasosProyectoSeguros = Array.isArray(dataset.pasosProyecto) ? dataset.pasosProyecto : [];
+  const archivosSeguros = Array.isArray(dataset.archivos) ? dataset.archivos : [];
 
   return (
     <div>
@@ -3173,11 +3315,48 @@ function DatasetPage({ dataset, onBack }) {
             ))}
           </div>
 
+          {pasosProyectoSeguros.length > 0 && (
+            <div style={{ ...s.card, marginTop: "18px" }}>
+              <h2 style={{ marginTop: 0 }}>Estructura del proyecto aplicado</h2>
+              <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+                Esta ficha funciona como un proyecto guiado. La idea no es solo cargar datos, sino seguir una secuencia de trabajo para llegar a una base final y a visualizaciones interpretables.
+              </p>
+              {pasosProyectoSeguros.map((paso) => (
+                <div key={paso.titulo} style={s.stepCard}>
+                  <h3 style={{ marginTop: 0 }}>{paso.titulo}</h3>
+                  <p style={{ color: "#475569", lineHeight: 1.65, marginBottom: 0 }}>{paso.texto}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {dataset.mapaInteractivo && (
+            <div style={{ ...s.card, marginTop: "18px" }}>
+              <h2 style={{ marginTop: 0 }}>Vista previa del mapa interactivo</h2>
+              <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+                Este mapa se abre dentro de la ficha. Para usarlo con más espacio, conviene abrirlo en pantalla completa. Al hacer clic en una región, se muestra un mapa detalle con sus sismos.
+              </p>
+              <div style={{ marginBottom: "12px" }}>
+                <a style={s.button} href={dataset.mapaInteractivo} target="_blank" rel="noreferrer">Abrir mapa en pantalla completa</a>
+              </div>
+              <iframe
+                src={dataset.mapaInteractivo}
+                title={`Mapa interactivo ${dataset.nombre}`}
+                style={{ width: "100%", height: "620px", border: "1px solid #cbd5e1", borderRadius: "14px", background: "#e2e8f0" }}
+              />
+            </div>
+          )}
+
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Código base en R</h2>
-            <p style={{ color: "#475569", marginTop: 0 }}>
-              Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo.
+            <p style={{ color: "#475569", marginTop: 0, lineHeight: 1.65 }}>
+              {dataset.scriptDescarga
+                ? "Esta base tiene un script largo. Aquí se muestra una versión resumida y el script completo queda disponible para descargar."
+                : "Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo."}
             </p>
+            {dataset.scriptDescarga && (
+              <p><a style={s.button} href={dataset.scriptDescarga} download>Descargar script completo en R</a></p>
+            )}
             <pre style={s.pre}>{dataset.script || "# Script pendiente de completar para esta base"}</pre>
           </div>
         </div>
@@ -3216,7 +3395,25 @@ function DatasetPage({ dataset, onBack }) {
             </div>
           )}
           <div style={s.linkBox}>
-            {dataset.descargas ? (
+            {archivosSeguros.length > 0 ? (
+              <div>
+                <p><strong>Archivos disponibles:</strong></p>
+                <ul style={{ marginTop: 0, paddingLeft: "20px", lineHeight: 1.9 }}>
+                  {archivosSeguros.map((archivo) => (
+                    <li key={archivo.url}>
+                      <a
+                        href={archivo.url}
+                        download={archivo.tipo !== "abrir"}
+                        target={archivo.tipo === "abrir" ? "_blank" : undefined}
+                        rel={archivo.tipo === "abrir" ? "noreferrer" : undefined}
+                      >
+                        {archivo.nombre}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : dataset.descargas ? (
               <p><strong>Archivos de datos:</strong>{" "}
                 {dataset.descargas.map((archivo, i) => (
                   <span key={archivo}>

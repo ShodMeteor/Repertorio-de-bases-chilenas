@@ -4037,18 +4037,30 @@ function DatasetPage({ dataset, onBack }) {
             <p style={{ color: "#475569", marginTop: 0, lineHeight: 1.65 }}>
               {dataset.scriptDescarga
                 ? "Esta base tiene un script largo. Aquí se muestra una versión resumida y el script completo queda disponible para descargar."
-                : "Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo."}
+                : "Script sugerido para preparar la base. Se puede descargar como archivo .R y correrlo después de tener la base de datos correspondiente."}
             </p>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
-              <button
-                type="button"
-                style={s.button}
-                onClick={() => descargarScriptDesdeFicha(dataset)}
-              >
-                Descargar código base en R
-              </button>
-              {dataset.scriptDescarga && (
-                <a style={s.buttonAlt} href={dataset.scriptDescarga} download>Descargar script completo en R</a>
+              {dataset.scriptDescarga ? (
+                <>
+                  <a style={s.button} href={dataset.scriptDescarga} download>
+                    Descargar script completo en R
+                  </a>
+                  <button
+                    type="button"
+                    style={s.buttonAlt}
+                    onClick={() => descargarScriptDesdeFicha(dataset)}
+                  >
+                    Descargar código mostrado en R
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  style={s.button}
+                  onClick={() => descargarScriptDesdeFicha(dataset)}
+                >
+                  Descargar script completo en R
+                </button>
               )}
             </div>
             <pre style={s.pre}>{dataset.script || "# Script pendiente de completar para esta base"}</pre>
@@ -4118,6 +4130,20 @@ function DatasetPage({ dataset, onBack }) {
             ) : (
               dataset.descarga && <p><strong>Archivo de datos:</strong> <a href={dataset.descarga} download>Descargar archivo</a></p>
             )}
+            <p>
+              <strong>Script en R:</strong>{" "}
+              {dataset.scriptDescarga ? (
+                <a href={dataset.scriptDescarga} download>Descargar script completo</a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => descargarScriptDesdeFicha(dataset)}
+                  style={{ background: "none", border: "none", padding: 0, color: "#1d4ed8", textDecoration: "underline", cursor: "pointer", font: "inherit" }}
+                >
+                  Descargar script de esta ficha
+                </button>
+              )}
+            </p>
             <p><strong>Fuente original:</strong> <a href={dataset.fuenteOriginal} target="_blank" rel="noreferrer">Abrir sitio oficial</a></p>
           </div>
         </div>

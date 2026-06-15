@@ -3470,6 +3470,73 @@ function ProjectPage({ proyecto, onBack, onOpenDataset }) {
   }
 
   const datasetRelacionado = datasets.find((d) => d.id === proyecto.datasetId);
+  const variablesProyecto = Array.isArray(proyecto.variables) ? proyecto.variables : [];
+  const tecnicasProyecto = Array.isArray(proyecto.tecnicas) ? proyecto.tecnicas : [];
+  const hipotesisProyecto = Array.isArray(proyecto.hipotesis) ? proyecto.hipotesis : [];
+  const productosProyecto = Array.isArray(proyecto.productos) ? proyecto.productos : [];
+  const pasosProyecto = Array.isArray(proyecto.pasos) ? proyecto.pasos : [];
+
+  const etapasProyecto = [
+    {
+      titulo: "1. Entender la pregunta",
+      texto: "Antes de correr código, identifica cuál es la variable principal, qué grupos se comparan y qué resultado tendría sentido encontrar. Esto evita hacer gráficos o tests que no responden la pregunta.",
+      producto: "Pregunta de investigación escrita en una frase clara."
+    },
+    {
+      titulo: "2. Preparar la base",
+      texto: "Carga los datos, selecciona solo las variables necesarias, revisa nombres de columnas, convierte variables categóricas a factor y filtra valores que no correspondan al análisis.",
+      producto: "Base limpia y más pequeña para trabajar."
+    },
+    {
+      titulo: "3. Revisar datos perdidos y valores extraños",
+      texto: "Cuenta los NA, revisa mínimos y máximos, y mira si hay códigos especiales. No elimines filas automáticamente sin entender primero por qué faltan esos datos.",
+      producto: "Tabla de NA, resumen descriptivo y decisión justificada sobre filtros."
+    },
+    {
+      titulo: "4. Hacer análisis descriptivo",
+      texto: "Construye tablas, promedios, proporciones y gráficos. Esta etapa permite ver patrones generales antes de aplicar pruebas formales.",
+      producto: "Tablas descriptivas y al menos un gráfico interpretable."
+    },
+    {
+      titulo: "5. Elegir el test o modelo adecuado",
+      texto: "La técnica depende del tipo de variable respuesta y de la cantidad de grupos. No se elige el test por costumbre, sino según la pregunta y la estructura de los datos.",
+      producto: "Test o modelo elegido con una breve justificación."
+    },
+    {
+      titulo: "6. Interpretar y concluir",
+      texto: "Explica el resultado en contexto. Además del valor p, menciona dirección, tamaño de la diferencia y limitaciones del análisis.",
+      producto: "Conclusión breve, clara y sin afirmar causalidad cuando no corresponde."
+    }
+  ];
+
+  const guiaTests = [
+    { situacion: "Comparar promedio entre 2 grupos", test: "t-test o Welch", ejemplo: "Puntaje según tipo de colegio" },
+    { situacion: "Comparar promedio entre 3 o más grupos", test: "ANOVA", ejemplo: "Puntaje según región" },
+    { situacion: "Comparar grupos con datos muy asimétricos", test: "Mann-Whitney o Kruskal-Wallis", ejemplo: "Ingreso por zona" },
+    { situacion: "Comparar proporciones o categorías", test: "Chi-cuadrado", ejemplo: "Ocupación según sexo" },
+    { situacion: "Variable respuesta numérica", test: "Regresión lineal", ejemplo: "Ingreso según escolaridad" },
+    { situacion: "Variable respuesta binaria", test: "Regresión logística", ejemplo: "Pobreza: sí/no" }
+  ];
+
+  const checklist = [
+    "¿La pregunta de investigación se entiende sin mirar el código?",
+    "¿La variable respuesta y las variables explicativas están identificadas?",
+    "¿Las variables categóricas fueron convertidas a factor cuando corresponde?",
+    "¿Se revisaron valores perdidos, códigos raros y observaciones extremas?",
+    "¿El gráfico elegido responde realmente a la pregunta?",
+    "¿El test estadístico coincide con el tipo de variable y la cantidad de grupos?",
+    "¿La conclusión interpreta el resultado en contexto y no solo el valor p?"
+  ];
+
+  const erroresComunes = [
+    "Confundir asociación con causalidad.",
+    "Usar un test t cuando hay más de dos grupos.",
+    "Aplicar ANOVA sin mirar primero la distribución de los datos.",
+    "Eliminar todos los NA sin explicar cuántos eran ni por qué se eliminaron.",
+    "Tratar códigos numéricos de categorías como si fueran cantidades reales.",
+    "Mostrar gráficos sin explicar qué patrón se observa.",
+    "Concluir solo con 'p < 0.05' sin decir qué significa en el problema."
+  ];
 
   return (
     <div>
@@ -3494,9 +3561,12 @@ function ProjectPage({ proyecto, onBack, onOpenDataset }) {
             <h2 style={{ marginTop: 0 }}>Planteamiento del proyecto</h2>
             <p style={{ color: "#475569", lineHeight: 1.7 }}><strong>Base sugerida:</strong> {proyecto.base}</p>
             <p style={{ color: "#475569", lineHeight: 1.7 }}><strong>Pregunta de investigación:</strong> {proyecto.pregunta}</p>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>
+              Este proyecto está pensado como una guía completa: primero se entiende la pregunta, luego se prepara la base, se revisan los datos, se hacen gráficos, se elige una prueba estadística y finalmente se redacta una conclusión clara.
+            </p>
             <h3>Hipótesis</h3>
             <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
-              {(proyecto.hipotesis || []).map((h) => <li key={h}>{h}</li>)}
+              {hipotesisProyecto.map((h) => <li key={h}>{h}</li>)}
             </ul>
             <div style={{ marginTop: "14px", padding: "12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "12px", color: "#9a3412", lineHeight: 1.65 }}>
               <strong>Cuidado metodológico:</strong> {proyecto.cuidado}
@@ -3505,7 +3575,10 @@ function ProjectPage({ proyecto, onBack, onOpenDataset }) {
 
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Ruta de trabajo sugerida</h2>
-            {(proyecto.pasos || []).map((paso, index) => (
+            <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+              Estos son los pasos específicos de este proyecto. Sirven como una pauta para avanzar sin saltarse etapas importantes.
+            </p>
+            {pasosProyecto.map((paso, index) => (
               <div key={paso} style={s.stepCard}>
                 <div style={s.stepHeader}>
                   <div style={s.stepNumber}>{index + 1}</div>
@@ -3513,6 +3586,64 @@ function ProjectPage({ proyecto, onBack, onOpenDataset }) {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Plantilla general para desarrollar el proyecto</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+              Esta plantilla sirve para que una persona con poca experiencia sepa qué hacer, qué revisar y qué debería obtener en cada etapa del análisis.
+            </p>
+            {etapasProyecto.map((paso) => (
+              <div key={paso.titulo} style={s.stepCard}>
+                <h3 style={{ marginTop: 0 }}>{paso.titulo}</h3>
+                <p style={{ color: "#475569", lineHeight: 1.65 }}>{paso.texto}</p>
+                <p style={{ color: "#334155", lineHeight: 1.65, marginBottom: 0 }}><strong>Resultado esperado:</strong> {paso.producto}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Cómo elegir el test estadístico</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+              Esta tabla ayuda a evitar errores al momento de escoger la prueba. La decisión depende principalmente del tipo de variable respuesta y de la cantidad de grupos que se comparan.
+            </p>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    <th style={{ textAlign: "left", padding: "10px", border: "1px solid #dbe3ef" }}>Situación</th>
+                    <th style={{ textAlign: "left", padding: "10px", border: "1px solid #dbe3ef" }}>Test o modelo</th>
+                    <th style={{ textAlign: "left", padding: "10px", border: "1px solid #dbe3ef" }}>Ejemplo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {guiaTests.map((fila) => (
+                    <tr key={fila.situacion}>
+                      <td style={{ padding: "10px", border: "1px solid #dbe3ef", color: "#475569" }}>{fila.situacion}</td>
+                      <td style={{ padding: "10px", border: "1px solid #dbe3ef", color: "#0b1220", fontWeight: 700 }}>{fila.test}</td>
+                      <td style={{ padding: "10px", border: "1px solid #dbe3ef", color: "#475569" }}>{fila.ejemplo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Checklist antes de concluir</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+              Antes de escribir el resultado final, conviene revisar esta lista. Si alguna respuesta es “no”, probablemente falta una parte del análisis.
+            </p>
+            <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
+              {checklist.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Errores comunes a evitar</h2>
+            <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
+              {erroresComunes.map((item) => <li key={item}>{item}</li>)}
+            </ul>
           </div>
 
           <div style={{ ...s.card, marginTop: "18px" }}>
@@ -3528,17 +3659,29 @@ function ProjectPage({ proyecto, onBack, onOpenDataset }) {
         <div>
           <div style={s.card}>
             <h2 style={{ marginTop: 0 }}>Variables clave</h2>
-            {(proyecto.variables || []).map((v) => <span key={v} style={s.badge}>{v}</span>)}
+            {variablesProyecto.map((v) => <span key={v} style={s.badge}>{v}</span>)}
           </div>
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Tests y técnicas</h2>
-            {(proyecto.tecnicas || []).map((t) => <span key={t} style={s.badge}>{t}</span>)}
+            {tecnicasProyecto.map((t) => <span key={t} style={s.badge}>{t}</span>)}
           </div>
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Productos esperados</h2>
             <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
-              {(proyecto.productos || []).map((p) => <li key={p}>{p}</li>)}
+              {productosProyecto.map((p) => <li key={p}>{p}</li>)}
             </ul>
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Cómo leer el resultado</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>
+              La conclusión debería responder directamente la pregunta del proyecto. No basta con decir si el test fue significativo: también hay que explicar qué grupo tiene mayor valor, qué tan grande parece la diferencia y qué limitaciones tiene el análisis.
+            </p>
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Redacción sugerida</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}>
+              “A partir de la base analizada, se observa que [resultado principal]. La prueba utilizada fue [test/modelo], porque [justificación breve]. En términos sustantivos, esto sugiere que [interpretación]. Sin embargo, este resultado debe interpretarse con cautela, ya que el análisis muestra asociación y no necesariamente causalidad.”
+            </p>
           </div>
         </div>
       </div>

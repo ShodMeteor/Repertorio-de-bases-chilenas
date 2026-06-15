@@ -3326,6 +3326,28 @@ function buildDatasetGuide(dataset) {
   ];
 }
 
+
+function descargarScriptDesdeFicha(dataset) {
+  const contenido = dataset?.script || "# Script pendiente de completar para esta base";
+  const nombreBase = (dataset?.id || dataset?.nombre || "codigo_base")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9_-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+  const nombreArchivo = `${nombreBase || "codigo_base"}.R`;
+  const blob = new Blob([contenido], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = nombreArchivo;
+  document.body.appendChild(enlace);
+  enlace.click();
+  document.body.removeChild(enlace);
+  URL.revokeObjectURL(url);
+}
+
 function DatasetPage({ dataset, onBack }) {
   if (!dataset) {
     return (
@@ -3450,9 +3472,18 @@ function DatasetPage({ dataset, onBack }) {
                 ? "Esta base tiene un script largo. Aquí se muestra una versión resumida y el script completo queda disponible para descargar."
                 : "Script completo sugerido para filtrar y preparar la base. Se puede copiar y pegar después de descargar el archivo."}
             </p>
-            {dataset.scriptDescarga && (
-              <p><a style={s.button} href={dataset.scriptDescarga} download>Descargar script completo en R</a></p>
-            )}
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
+              <button
+                type="button"
+                style={s.button}
+                onClick={() => descargarScriptDesdeFicha(dataset)}
+              >
+                Descargar código base en R
+              </button>
+              {dataset.scriptDescarga && (
+                <a style={s.buttonAlt} href={dataset.scriptDescarga} download>Descargar script completo en R</a>
+              )}
+            </div>
             <pre style={s.pre}>{dataset.script || "# Script pendiente de completar para esta base"}</pre>
           </div>
         </div>

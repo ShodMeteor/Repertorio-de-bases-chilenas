@@ -2742,6 +2742,342 @@ abline(modelo)`,
 
 ];
 
+const proyectos = [
+  {
+    id: "paes-brechas-colegio",
+    titulo: "Brechas de rendimiento PAES según tipo de colegio",
+    area: "Educación",
+    icono: "🎓",
+    base: "PAES 2025",
+    datasetId: "paes-2025",
+    nivel: "Inicial / intermedio",
+    pregunta: "¿Existen diferencias relevantes en los puntajes PAES entre estudiantes de colegios municipales y particulares pagados?",
+    hipotesis: [
+      "H0: el puntaje promedio no cambia según tipo de colegio.",
+      "H1: el puntaje promedio sí cambia según tipo de colegio.",
+      "Hipótesis sustantiva: las diferencias de puntaje reflejan desigualdades educativas asociadas al tipo de establecimiento."
+    ],
+    variables: ["tipo_colegio", "CLEC_REG_ACTUAL", "MATE1_REG_ACTUAL", "PTJE_NEM", "PTJE_RANKING", "CODIGO_REGION"],
+    tecnicas: ["Exploratorio", "Boxplots", "t-test", "ANOVA", "Tamaño de efecto", "Comparación por región"],
+    pasos: [
+      "Filtrar estudiantes con puntajes válidos y primera rendición.",
+      "Crear la variable tipo_colegio con las categorías Municipal y Particular pagado.",
+      "Comparar distribuciones con boxplots y tablas descriptivas.",
+      "Aplicar t-test o ANOVA según la cantidad de grupos a comparar.",
+      "Interpretar la diferencia en puntos, no solo el valor p.",
+      "Repetir el análisis por región para ver si la brecha se mantiene territorialmente."
+    ],
+    productos: ["Tabla descriptiva por tipo de colegio", "Boxplot de puntajes", "Test de comparación de medias", "Conclusión en lenguaje no técnico"],
+    cuidado: "No interpretar la diferencia como causalidad. El tipo de colegio está asociado a muchas variables sociales que no están controladas directamente.",
+    codigo: `# Proyecto: Brechas PAES por tipo de colegio
+# Base sugerida: PAES 2025
+
+datos <- read.csv("ArchivoC_Adm2025.csv", sep = ";", stringsAsFactors = FALSE)
+
+datos <- subset(datos,
+                GRUPO_DEPENDENCIA %in% c(1, 3) &
+                SITUACION_EGRESO %in% c(1, 2, 3, 4) &
+                CLEC_REG_ACTUAL > 0 &
+                MATE1_REG_ACTUAL > 0)
+
+datos$tipo_colegio <- ifelse(datos$GRUPO_DEPENDENCIA == 1,
+                             "Municipal",
+                             "Particular pagado")
+
+datos$tipo_colegio <- factor(datos$tipo_colegio)
+
+# Descriptiva
+aggregate(MATE1_REG_ACTUAL ~ tipo_colegio, data = datos, mean, na.rm = TRUE)
+aggregate(CLEC_REG_ACTUAL ~ tipo_colegio, data = datos, mean, na.rm = TRUE)
+
+# Gráficos
+boxplot(MATE1_REG_ACTUAL ~ tipo_colegio,
+        data = datos,
+        main = "Puntaje Matemática por tipo de colegio",
+        xlab = "Tipo de colegio",
+        ylab = "Puntaje")
+
+# Test de diferencia de medias
+t.test(MATE1_REG_ACTUAL ~ tipo_colegio, data = datos)
+t.test(CLEC_REG_ACTUAL ~ tipo_colegio, data = datos)`
+  },
+  {
+    id: "casen-acceso-salud",
+    titulo: "Barreras de acceso a salud en CASEN 2024",
+    area: "Salud",
+    icono: "🏥",
+    base: "CASEN 2024 - Salud",
+    datasetId: "casen-salud-2024",
+    nivel: "Intermedio",
+    pregunta: "¿Qué factores sociales y territoriales se asocian con problemas de acceso a atención médica?",
+    hipotesis: [
+      "H0: la probabilidad de reportar problemas de atención no cambia según pobreza, región o sistema de salud.",
+      "H1: la probabilidad de reportar problemas de atención sí cambia según condiciones sociales y territoriales.",
+      "Hipótesis sustantiva: las barreras de acceso se concentran en grupos con mayor vulnerabilidad social."
+    ],
+    variables: ["problema_hora", "problema_costo", "sexo", "edad", "region", "zona_region", "pobreza", "s13_fonasa", "disc_wg"],
+    tecnicas: ["Tablas de frecuencia", "Comparación de proporciones", "Chi-cuadrado", "Regresión logística", "Odds ratio"],
+    pasos: [
+      "Construir una variable binaria de problema de acceso a salud.",
+      "Describir la proporción de personas con problema de acceso.",
+      "Comparar proporciones según pobreza, sistema de salud y zona territorial.",
+      "Aplicar chi-cuadrado para evaluar asociación entre variables categóricas.",
+      "Ajustar una regresión logística para estimar asociaciones controlando por varias variables.",
+      "Interpretar los odds ratio en lenguaje simple."
+    ],
+    productos: ["Tabla de proporciones", "Gráfico de barras", "Modelo logístico", "Tabla de odds ratio"],
+    cuidado: "Las preguntas de salud pueden tener muchos NA porque no aplican a todas las personas. Hay que revisar el universo de respuesta antes de modelar.",
+    codigo: `# Proyecto: Barreras de acceso a salud
+# Base sugerida: CASEN 2024 - Salud
+
+# Usar la base limpia creada en la ficha de CASEN Salud:
+# datos_final_casen_salud
+
+datos <- datos_final_casen_salud
+
+# Ejemplo con problema para conseguir hora médica
+modelo_datos <- subset(datos,
+                       !is.na(problema_hora) &
+                       !is.na(pobreza) &
+                       !is.na(zona_region) &
+                       !is.na(sexo))
+
+# Tablas iniciales
+prop.table(table(modelo_datos$problema_hora))
+prop.table(table(modelo_datos$pobreza, modelo_datos$problema_hora), margin = 1)
+
+# Asociación bivariada
+chisq.test(table(modelo_datos$pobreza, modelo_datos$problema_hora))
+
+# Modelo logístico
+modelo <- glm(problema_hora ~ pobreza + zona_region + sexo + edad,
+              data = modelo_datos,
+              family = binomial)
+
+summary(modelo)
+exp(coef(modelo))`
+  },
+  {
+    id: "casen-pobreza-territorio",
+    titulo: "Pobreza multidimensional y desigualdad territorial",
+    area: "Datos sociales",
+    icono: "📊",
+    base: "CASEN 2024 - Pobreza y desigualdad",
+    datasetId: "casen-pobreza-desigualdad-2024",
+    nivel: "Inicial / intermedio",
+    pregunta: "¿La pobreza multidimensional presenta diferencias territoriales entre regiones y zonas urbanas/rurales?",
+    hipotesis: [
+      "H0: la proporción de pobreza multidimensional es igual entre territorios.",
+      "H1: la proporción de pobreza multidimensional cambia entre territorios.",
+      "Hipótesis sustantiva: las desigualdades territoriales se expresan en mayores carencias multidimensionales."
+    ],
+    variables: ["pobreza_multi", "region", "area", "zona_region", "esc", "ytot", "log_ytot", "nse"],
+    tecnicas: ["Tablas cruzadas", "Gráficos de barras", "Chi-cuadrado", "Regresión logística", "Mapeo regional básico"],
+    pasos: [
+      "Crear una variable binaria de pobreza multidimensional si corresponde.",
+      "Comparar proporciones por región y zona urbana/rural.",
+      "Ordenar regiones según porcentaje de pobreza multidimensional.",
+      "Aplicar chi-cuadrado para evaluar asociación territorial.",
+      "Construir un modelo logístico simple con región, zona y escolaridad.",
+      "Interpretar resultados desde una pregunta de política pública."
+    ],
+    productos: ["Ranking regional", "Gráfico de barras por región", "Chi-cuadrado", "Modelo logístico simple"],
+    cuidado: "Para variables de hogar o ingreso conviene evitar duplicar hogares. Si se trabaja a nivel hogar, usar jefe/a de hogar cuando corresponda.",
+    codigo: `# Proyecto: Pobreza multidimensional y territorio
+# Base sugerida: CASEN 2024 - Pobreza y desigualdad
+
+datos <- datos_final_casen_pobreza
+
+# Revisar variable de pobreza multidimensional
+table(datos$pobreza_multi, useNA = "ifany")
+
+# Proporción por zona urbana/rural
+prop.table(table(datos$area, datos$pobreza_multi), margin = 1)
+
+# Asociación territorial
+chisq.test(table(datos$area, datos$pobreza_multi))
+
+# Modelo logístico si pobreza_multi está codificada como 0/1 o similar
+modelo_datos <- subset(datos,
+                       !is.na(pobreza_multi) &
+                       !is.na(area) &
+                       !is.na(esc))
+
+modelo <- glm(pobreza_multi ~ area + esc + sexo + edad,
+              data = modelo_datos,
+              family = binomial)
+
+summary(modelo)
+exp(coef(modelo))`
+  },
+  {
+    id: "ene-informalidad-laboral",
+    titulo: "Informalidad laboral y desigualdad en la ENE",
+    area: "Trabajo",
+    icono: "💼",
+    base: "Encuesta Nacional de Empleo 2026",
+    datasetId: "ene-2026",
+    nivel: "Intermedio",
+    pregunta: "¿Qué características se asocian con la informalidad laboral en Chile?",
+    hipotesis: [
+      "H0: la informalidad laboral no se asocia con sexo, edad, región o nivel educacional.",
+      "H1: la informalidad laboral sí se asocia con características sociodemográficas y territoriales.",
+      "Hipótesis sustantiva: la informalidad se concentra en ciertos grupos con mayor precariedad laboral."
+    ],
+    variables: ["ocup_form", "sexo", "edad", "region", "nivel", "categoria_ocupacion", "habituales", "fact_cal"],
+    tecnicas: ["Tablas de contingencia", "Comparación de proporciones", "Chi-cuadrado", "Regresión logística", "Gráficos de barras"],
+    pasos: [
+      "Filtrar población ocupada.",
+      "Identificar la variable de formalidad o informalidad laboral.",
+      "Comparar informalidad por sexo, edad, región y nivel educacional.",
+      "Aplicar chi-cuadrado para asociaciones categóricas.",
+      "Ajustar una regresión logística de informalidad.",
+      "Interpretar grupos con mayor o menor probabilidad estimada."
+    ],
+    productos: ["Tabla de informalidad por grupo", "Gráfico de proporciones", "Chi-cuadrado", "Regresión logística"],
+    cuidado: "La ENE tiene ponderadores. Para una versión inicial se puede trabajar sin ponderar, pero en un informe formal conviene considerar factores de expansión.",
+    codigo: `# Proyecto: Informalidad laboral
+# Base sugerida: Encuesta Nacional de Empleo
+
+datos <- read.csv("ene-2026-02-efm.csv", sep = ";", stringsAsFactors = FALSE)
+
+# Filtrar población ocupada si activ == 1
+datos <- subset(datos, edad >= 15 & activ == 1)
+
+datos$sexo <- factor(datos$sexo, levels = c(1, 2), labels = c("Hombre", "Mujer"))
+datos$region <- factor(datos$region)
+datos$nivel <- factor(datos$nivel)
+datos$ocup_form <- factor(datos$ocup_form)
+
+# Revisar informalidad
+table(datos$ocup_form, useNA = "ifany")
+prop.table(table(datos$sexo, datos$ocup_form), margin = 1)
+
+# Asociación por sexo
+chisq.test(table(datos$sexo, datos$ocup_form))
+
+# Modelo logístico: ajustar los códigos de ocup_form según diccionario
+# Ejemplo: informal = 1 si ocup_form indica informalidad
+datos$informal <- ifelse(datos$ocup_form == 2, 1,
+                         ifelse(datos$ocup_form == 1, 0, NA))
+
+modelo <- glm(informal ~ sexo + edad + region + nivel,
+              data = datos,
+              family = binomial)
+
+summary(modelo)
+exp(coef(modelo))`
+  },
+  {
+    id: "sismos-riesgo-territorial",
+    titulo: "Sismos, magnitud y concentración territorial",
+    area: "Medio ambiente",
+    icono: "🌎",
+    base: "Sismos en Chile - mapa interactivo y asignación regional",
+    datasetId: "sismos-chile-mapa-interactivo",
+    nivel: "Intermedio / aplicado",
+    pregunta: "¿Qué regiones concentran más sismos y cómo cambia la magnitud o profundidad según macrozona?",
+    hipotesis: [
+      "H0: la magnitud y profundidad de los sismos no cambian según macrozona.",
+      "H1: la magnitud o profundidad sí presenta diferencias entre macrozonas.",
+      "Hipótesis sustantiva: la distribución espacial de los sismos muestra patrones territoriales diferenciados."
+    ],
+    variables: ["latitud", "longitud", "magnitud", "profundidad", "region_asignada", "metodo_asignacion_region", "macrozona", "sismo_mayor_5"],
+    tecnicas: ["Análisis espacial", "Mapa interactivo", "Resumen por región", "Kruskal-Wallis", "ANOVA", "Chi-cuadrado"],
+    pasos: [
+      "Cargar la base de sismos con coordenadas.",
+      "Convertir coordenadas en puntos espaciales.",
+      "Asignar región mediante cruce con polígonos regionales.",
+      "Construir resúmenes por región y macrozona.",
+      "Visualizar el mapa interactivo y revisar eventos en el mar.",
+      "Comparar magnitud y profundidad entre macrozonas."
+    ],
+    productos: ["Base con región asignada", "Mapa interactivo HTML", "Resumen por región", "Test por macrozona"],
+    cuidado: "Los sismos marinos no se mueven dentro de la región. Se mantienen en su coordenada real y se asignan a la región más cercana solo para resumir resultados.",
+    codigo: `# Proyecto: Sismos y concentración territorial
+# Base sugerida: sismos_chile_con_region.csv
+
+datos <- read.csv("sismos_chile_con_region.csv", stringsAsFactors = FALSE)
+
+# Cantidad por región
+sort(table(datos$region_asignada), decreasing = TRUE)
+
+# Magnitud promedio por región
+aggregate(magnitud ~ region_asignada, data = datos, mean, na.rm = TRUE)
+
+# Comparación de profundidad por macrozona
+kruskal.test(profundidad ~ macrozona, data = datos)
+
+# Comparación de magnitud por macrozona
+kruskal.test(magnitud ~ macrozona, data = datos)
+
+# Eventos fuertes por macrozona
+tabla <- table(datos$macrozona, datos$sismo_mayor_5)
+tabla
+chisq.test(tabla)`
+  },
+  {
+    id: "cep-opinion-publica-comparada",
+    titulo: "Cambio en opinión pública entre CEP 2023 y CEP 2024",
+    area: "Opinión pública",
+    icono: "🏛️",
+    base: "Encuesta CEP 2023-2024 comparada",
+    datasetId: "cep-89-91-comparacion",
+    nivel: "Intermedio",
+    pregunta: "¿Cambió la aprobación del gobierno o la posición ideológica declarada entre 2023 y 2024?",
+    hipotesis: [
+      "H0: la distribución de aprobación del gobierno no cambia entre años.",
+      "H1: la distribución de aprobación del gobierno cambia entre años.",
+      "Hipótesis sustantiva: la opinión pública puede variar entre mediciones y esas diferencias pueden observarse por sexo, edad o zona."
+    ],
+    variables: ["anio", "sexo", "edad", "region", "zona_u_r", "eval_gob_1", "aprueba_gobierno", "iden_pol_2", "posicion_ideologica", "pond"],
+    tecnicas: ["Tablas ponderadas", "Comparación temporal", "Chi-cuadrado", "Comparación de medias", "Gráficos de barras"],
+    pasos: [
+      "Cargar CEP 89 y CEP 91.",
+      "Seleccionar solo variables comparables entre ambas mediciones.",
+      "Homologar nombres de variables, especialmente región.",
+      "Crear una variable anio para distinguir 2023 y 2024.",
+      "Comparar aprobación del gobierno por año usando tablas ponderadas.",
+      "Revisar si los cambios se mantienen por sexo o grupo de edad."
+    ],
+    productos: ["Tabla comparativa por año", "Gráfico de aprobación", "Chi-cuadrado", "Promedio de posición ideológica por año"],
+    cuidado: "Antes de comparar años, hay que verificar que la pregunta y la codificación sean equivalentes en ambos cuestionarios.",
+    codigo: `# Proyecto: Opinión pública CEP comparada
+# Base sugerida: CEP 89 vs CEP 91
+
+cep89 <- read.csv("base_89.csv", stringsAsFactors = FALSE)
+cep91 <- read.csv("base_91.csv", stringsAsFactors = FALSE)
+
+variables_89 <- c("sexo", "edad", "region", "zona_u_r", "pond", "eval_gob_1", "iden_pol_2")
+variables_91 <- c("sexo", "edad", "region_3", "zona_u_r", "pond", "eval_gob_1", "iden_pol_2")
+
+cep89 <- cep89[, variables_89[variables_89 %in% names(cep89)]]
+cep91 <- cep91[, variables_91[variables_91 %in% names(cep91)]]
+
+names(cep91)[names(cep91) == "region_3"] <- "region"
+
+cep89$anio <- 2023
+cep91$anio <- 2024
+
+datos <- rbind(cep89, cep91)
+
+datos$aprueba_gobierno <- ifelse(datos$eval_gob_1 == 1, 1,
+                                 ifelse(datos$eval_gob_1 == 2, 0, NA))
+
+datos$posicion_ideologica <- ifelse(datos$iden_pol_2 %in% 1:10,
+                                    datos$iden_pol_2,
+                                    NA)
+
+# Aprobación ponderada por año
+tabla <- xtabs(pond ~ anio + aprueba_gobierno, data = datos)
+prop.table(tabla, margin = 1)
+
+# Posición ideológica promedio por año
+aggregate(posicion_ideologica ~ anio, data = datos, mean, na.rm = TRUE)`
+  }
+];
+
+
 const filtrosDisponibles = {
   tamano: ["Pequeña", "Mediana", "Grande"],
   analisis: ["Exploratorio", "t-test", "ANOVA", "Regresión", "Regresión lineal", "Regresión logística", "Correlación", "Análisis temporal básico", "Tasas", "Comparación de proporciones", "Tablas de frecuencia"],
@@ -2838,6 +3174,50 @@ function coincideBusquedaEjercicio(exercise, busqueda) {
   return normalizarTexto(textoBuscableEjercicio(exercise)).includes(q);
 }
 
+
+
+function textoBuscableProyecto(proyecto) {
+  return [
+    proyecto.id,
+    proyecto.titulo,
+    proyecto.area,
+    proyecto.base,
+    proyecto.nivel,
+    proyecto.pregunta,
+    proyecto.cuidado,
+    ...(proyecto.hipotesis || []),
+    ...(proyecto.variables || []),
+    ...(proyecto.tecnicas || []),
+    ...(proyecto.pasos || []),
+    ...(proyecto.productos || []),
+  ].join(" ");
+}
+
+function coincideBusquedaProyecto(proyecto, busqueda) {
+  const q = normalizarTexto(busqueda);
+  if (!q) return true;
+  return normalizarTexto(textoBuscableProyecto(proyecto)).includes(q);
+}
+
+function descargarCodigoProyecto(proyecto) {
+  const contenido = proyecto?.codigo || "# Código pendiente para este proyecto";
+  const nombreBase = (proyecto?.id || proyecto?.titulo || "proyecto")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9_-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+  const blob = new Blob([contenido], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = `${nombreBase || "proyecto"}.R`;
+  document.body.appendChild(enlace);
+  enlace.click();
+  document.body.removeChild(enlace);
+  URL.revokeObjectURL(url);
+}
 
 function GlobalSearch({ onOpenDataset }) {
   const [busqueda, setBusqueda] = useState("");
@@ -3002,6 +3382,170 @@ function DatasetCard({ d, onOpenDataset }) {
 }
 
 
+
+function ProjectCard({ proyecto, onOpenProject, onOpenDataset }) {
+  const datasetRelacionado = datasets.find((d) => d.id === proyecto.datasetId);
+
+  return (
+    <div style={s.card}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+        <div>
+          <p style={{ margin: 0, color: "#1d4ed8", fontWeight: 700 }}>{proyecto.area}</p>
+          <h3 style={{ margin: "6px 0 8px 0", fontSize: "22px" }}>{proyecto.titulo}</h3>
+        </div>
+        <div style={s.iconBox}>{proyecto.icono}</div>
+      </div>
+      <p style={s.smallMuted}><strong>Pregunta:</strong> {proyecto.pregunta}</p>
+      <p style={s.smallMuted}><strong>Base sugerida:</strong> {proyecto.base}</p>
+      <div style={{ margin: "12px 0" }}>
+        {(proyecto.tecnicas || []).slice(0, 4).map((item) => <span key={item} style={s.badge}>{item}</span>)}
+      </div>
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <button style={s.button} onClick={() => onOpenProject(proyecto)}>Ver proyecto</button>
+        {datasetRelacionado && (
+          <button style={s.buttonAlt} onClick={() => onOpenDataset(datasetRelacionado, "proyectos")}>Ver base</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProjectsPage({ onBack, onOpenProject, onOpenDataset }) {
+  const [busqueda, setBusqueda] = useState("");
+  const [area, setArea] = useState("");
+
+  const filtrados = useMemo(() => {
+    return proyectos
+      .filter((p) => (area ? p.area === area : true))
+      .filter((p) => coincideBusquedaProyecto(p, busqueda));
+  }, [busqueda, area]);
+
+  const areasProyecto = Array.from(new Set(proyectos.map((p) => p.area)));
+
+  return (
+    <div>
+      <div style={{ marginBottom: "16px" }}>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver a la portada</button>
+      </div>
+      <div style={s.heroFormal}>
+        <p style={s.eyebrow}>Proyectos guiados</p>
+        <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>Ideas de proyecto con pregunta, hipótesis y test</h1>
+        <p style={s.brandText}>
+          Esta sección está pensada para estudiantes que están recién entrando a trabajar con datos. Cada proyecto parte desde una base del repertorio y propone una pregunta de investigación, hipótesis, variables, pruebas estadísticas y un código inicial en R.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: "14px", marginTop: "22px" }}>
+          <input style={{ ...s.searchBox, marginTop: 0 }} placeholder="Buscar proyecto, técnica o base..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          <select style={s.input} value={area} onChange={(e) => setArea(e.target.value)}>
+            <option value="">Todas las áreas</option>
+            {areasProyecto.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+      </div>
+      <p style={s.sectionSubtitle}>{filtrados.length} proyecto(s) disponible(s)</p>
+      <div style={s.grid}>
+        {filtrados.map((proyecto) => (
+          <ProjectCard
+            key={proyecto.id}
+            proyecto={proyecto}
+            onOpenProject={onOpenProject}
+            onOpenDataset={onOpenDataset}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProjectPage({ proyecto, onBack, onOpenDataset }) {
+  if (!proyecto) {
+    return (
+      <div>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver</button>
+        <div style={s.card}>
+          <h2>No se encontró el proyecto</h2>
+          <p style={{ color: "#475569" }}>Vuelve a la sección de proyectos y selecciona nuevamente.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const datasetRelacionado = datasets.find((d) => d.id === proyecto.datasetId);
+
+  return (
+    <div>
+      <div style={{ marginBottom: "16px" }}>
+        <button style={s.buttonAlt} onClick={onBack}>← Volver a proyectos</button>
+      </div>
+      <div style={s.heroFormal}>
+        <p style={s.eyebrow}>{proyecto.area} · {proyecto.nivel}</p>
+        <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>{proyecto.titulo}</h1>
+        <p style={s.brandText}>{proyecto.pregunta}</p>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
+          {datasetRelacionado && (
+            <button style={s.button} onClick={() => onOpenDataset(datasetRelacionado, "proyectos")}>Abrir ficha de la base</button>
+          )}
+          <button style={s.buttonAlt} onClick={() => descargarCodigoProyecto(proyecto)}>Descargar código del proyecto en R</button>
+        </div>
+      </div>
+
+      <div style={s.twoCol}>
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Planteamiento del proyecto</h2>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}><strong>Base sugerida:</strong> {proyecto.base}</p>
+            <p style={{ color: "#475569", lineHeight: 1.7 }}><strong>Pregunta de investigación:</strong> {proyecto.pregunta}</p>
+            <h3>Hipótesis</h3>
+            <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
+              {(proyecto.hipotesis || []).map((h) => <li key={h}>{h}</li>)}
+            </ul>
+            <div style={{ marginTop: "14px", padding: "12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "12px", color: "#9a3412", lineHeight: 1.65 }}>
+              <strong>Cuidado metodológico:</strong> {proyecto.cuidado}
+            </div>
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Ruta de trabajo sugerida</h2>
+            {(proyecto.pasos || []).map((paso, index) => (
+              <div key={paso} style={s.stepCard}>
+                <div style={s.stepHeader}>
+                  <div style={s.stepNumber}>{index + 1}</div>
+                  <h3 style={{ margin: 0 }}>{paso}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Código inicial en R</h2>
+            <p style={{ color: "#475569", lineHeight: 1.65, marginTop: 0 }}>
+              Este código no reemplaza el análisis completo, pero deja un punto de partida claro para que el estudiante pueda adaptar el proyecto a su propia pregunta.
+            </p>
+            <button style={s.button} onClick={() => descargarCodigoProyecto(proyecto)}>Descargar código del proyecto en R</button>
+            <pre style={s.pre}>{proyecto.codigo}</pre>
+          </div>
+        </div>
+
+        <div>
+          <div style={s.card}>
+            <h2 style={{ marginTop: 0 }}>Variables clave</h2>
+            {(proyecto.variables || []).map((v) => <span key={v} style={s.badge}>{v}</span>)}
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Tests y técnicas</h2>
+            {(proyecto.tecnicas || []).map((t) => <span key={t} style={s.badge}>{t}</span>)}
+          </div>
+          <div style={{ ...s.card, marginTop: "18px" }}>
+            <h2 style={{ marginTop: 0 }}>Productos esperados</h2>
+            <ul style={{ color: "#475569", lineHeight: 1.8, paddingLeft: "20px" }}>
+              {(proyecto.productos || []).map((p) => <li key={p}>{p}</li>)}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SearchResultsPage({ query, onBack, onOpenDataset }) {
   const resultados = useMemo(() => {
     const termino = normalizarTexto(query || "");
@@ -3011,12 +3555,12 @@ function SearchResultsPage({ query, onBack, onOpenDataset }) {
 
   return (
     <div>
-      <button style={s.secondaryButton} onClick={onBack}>← Volver al inicio</button>
-      <div style={s.panel}>
+      <button style={s.buttonAlt} onClick={onBack}>← Volver al inicio</button>
+      <div style={s.card}>
         <h2 style={s.title}>Resultados de búsqueda</h2>
-        <p style={s.muted}>Búsqueda: <strong>{query}</strong>. Se muestran todas las bases que coinciden con el nombre, área, fuente, variables, técnicas o preguntas.</p>
+        <p style={s.sectionSubtitle}>Búsqueda: <strong>{query}</strong>. Se muestran todas las bases que coinciden con el nombre, área, fuente, variables, técnicas o preguntas.</p>
       </div>
-      <div style={s.gridCards}>
+      <div style={s.grid}>
         {resultados.map((d) => (
           <DatasetCard
             key={d.id}
@@ -3026,17 +3570,18 @@ function SearchResultsPage({ query, onBack, onOpenDataset }) {
         ))}
       </div>
       {resultados.length === 0 && (
-        <div style={s.panel}>
-          <p style={s.muted}>No se encontraron resultados para esa búsqueda.</p>
+        <div style={s.card}>
+          <p style={s.sectionSubtitle}>No se encontraron resultados para esa búsqueda.</p>
         </div>
       )}
     </div>
   );
 }
 
-function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpenAreas }) {
+function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpenAreas, onOpenProjects, onOpenProject }) {
   const resultadosBusqueda = datasets.slice(0, 8);
   const areasDestacadas = areas.slice(0, 6);
+  const proyectosDestacados = proyectos.slice(0, 6);
 
   return (
     <div>
@@ -3052,6 +3597,7 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
           <div style={s.statCard}><p style={s.statNumber}>{datasets.length}</p><p style={s.statLabel}>datasets incorporados</p></div>
           <div style={s.statCard}><p style={s.statNumber}>{areas.length}</p><p style={s.statLabel}>áreas temáticas</p></div>
           <div style={s.statCard}><p style={s.statNumber}>{fuentes.length}</p><p style={s.statLabel}>fuentes oficiales</p></div>
+          <div style={s.statCard}><p style={s.statNumber}>{proyectos.length}</p><p style={s.statLabel}>proyectos guiados</p></div>
         </div>
       </div>
 
@@ -3099,6 +3645,27 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
             <p style={{ color: "#475569", lineHeight: 1.6 }}>{area.descripcion}</p>
             <button style={s.button} onClick={() => onOpenArea(area.nombre)}>Entrar al área</button>
           </div>
+        ))}
+      </div>
+
+
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", gap: "16px", marginTop: "40px" }}>
+        <div>
+          <h2 id="proyectos" style={s.title}>Proyectos guiados</h2>
+          <p style={s.sectionSubtitle}>Ideas listas para partir: pregunta, hipótesis, variables, test recomendado y código inicial en R.</p>
+        </div>
+        <button style={s.buttonAlt} onClick={onOpenProjects}>Ver todos los proyectos</button>
+      </div>
+
+      <div style={s.grid}>
+        {proyectosDestacados.map((proyecto) => (
+          <ProjectCard
+            key={proyecto.id}
+            proyecto={proyecto}
+            onOpenProject={onOpenProject}
+            onOpenDataset={onOpenDataset}
+          />
         ))}
       </div>
 
@@ -3601,6 +4168,7 @@ export default function App() {
   const [areaActual, setAreaActual] = useState(null);
   const [datasetActual, setDatasetActual] = useState(null);
   const [exerciseActual, setExerciseActual] = useState(null);
+  const [proyectoActual, setProyectoActual] = useState(null);
   const [origenDataset, setOrigenDataset] = useState("inicio");
   const [busquedaActual, setBusquedaActual] = useState("");
 
@@ -3617,6 +4185,21 @@ export default function App() {
 
     if (vistaRuta === "areas") {
       setVista("areas");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
+    if (vistaRuta === "proyectos") {
+      setVista("proyectos");
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+      return;
+    }
+
+    if (vistaRuta === "proyecto") {
+      const id = partes[1];
+      const proyecto = proyectos.find((p) => p.id === id) || proyectos[0];
+      setProyectoActual(proyecto);
+      setVista("proyecto");
       setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
       return;
     }
@@ -3701,6 +4284,7 @@ export default function App() {
           <nav style={s.nav}>
             <span style={s.navItem} onClick={() => scrollToSection("top")}>Inicio</span>
             <span style={s.navItem} onClick={() => irA("#/catalogo")}>Datasets</span>
+            <span style={s.navItem} onClick={() => irA("#/proyectos")}>Proyectos</span>
             <span style={s.navItem} onClick={() => scrollToSection("fuentes")}>Fuentes</span>
           </nav>
         </div>
@@ -3714,6 +4298,8 @@ export default function App() {
             onOpenExercise={(exercise) => irA(`#/exercise/${exercise.id}`)}
             onOpenCatalog={() => irA("#/catalogo")}
             onOpenAreas={() => irA("#/areas")}
+            onOpenProjects={() => irA("#/proyectos")}
+            onOpenProject={(proyecto) => irA(`#/proyecto/${proyecto.id}`)}
           />
         )}
 
@@ -3728,6 +4314,22 @@ export default function App() {
           <AreasListPage
             onBack={() => irA("#/inicio")}
             onOpenArea={(area) => irA(`#/area/${encodeURIComponent(area)}`)}
+          />
+        )}
+
+        {vista === "proyectos" && (
+          <ProjectsPage
+            onBack={() => irA("#/inicio")}
+            onOpenProject={(proyecto) => irA(`#/proyecto/${proyecto.id}`)}
+            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
+          />
+        )}
+
+        {vista === "proyecto" && (
+          <ProjectPage
+            proyecto={proyectoActual}
+            onBack={() => irA("#/proyectos")}
+            onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)}
           />
         )}
 
@@ -3752,6 +4354,7 @@ export default function App() {
             dataset={datasetActual}
             onBack={() => {
               if (origenDataset === "area" && areaActual) irA(`#/area/${encodeURIComponent(areaActual)}`);
+              else if (origenDataset === "proyectos") irA("#/proyectos");
               else irA("#/inicio");
             }}
           />

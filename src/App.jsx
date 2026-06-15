@@ -887,6 +887,17 @@ datos_final_casen_vivienda <- casen_vivienda
       "Esta ficha está pensada como un proyecto aplicado de análisis espacial. A diferencia de una base tradicional, aquí no basta con cargar datos y hacer tablas: primero se convierten las coordenadas en puntos, luego se cruzan con los polígonos de las regiones de Chile y finalmente se construye una variable de región asignada. Los sismos ubicados en el mar se mantienen en su coordenada real, pero se asignan a la región más cercana para poder resumir resultados por territorio.",
     usos:
       "Sirve para aprender a trabajar con coordenadas geográficas, mapas de Chile, asignación espacial por región, resúmenes territoriales, comparación entre macrozonas y visualización interactiva. También permite formular preguntas de investigación sobre magnitud, profundidad y concentración territorial de eventos sísmicos.",
+    notaMetodologica:
+      "Los epicentros que aparecen en el mar no se deben mover dentro de la región. La coordenada muestra dónde ocurrió el sismo. La región asignada se usa solo para resumir y comparar resultados por territorio.",
+    notaMapa:
+      "Si aparece un error 404 en esta sección, no es un problema del código de React: significa que el archivo mapa_interactivo_regional_sismos.html todavía no está copiado en public/archivos o tiene otro nombre.",
+    checklistArchivos: [
+      "sismos_chile_limpios.xlsx: base de entrada que se lee desde R.",
+      "script_sismos_chile.R: script completo que genera la base final, resúmenes, gráficos y mapa HTML.",
+      "sismos_chile_con_region.csv: base final con región asignada, exportada desde R.",
+      "sismos_chile_con_region.xlsx: archivo Excel con base final y tablas resumen.",
+      "mapa_interactivo_regional_sismos.html: mapa que se muestra dentro de la ficha. Este archivo debe estar obligatoriamente en public/archivos."
+    ],
     tecnicas: [
       "Lectura de coordenadas",
       "Objetos espaciales sf",
@@ -928,6 +939,65 @@ datos_final_casen_vivienda <- casen_vivienda
       { nombre: "Script completo en R", url: "/archivos/script_sismos_chile.R", tipo: "descarga" },
       { nombre: "Abrir mapa interactivo", url: "/archivos/mapa_interactivo_regional_sismos.html", tipo: "abrir" }
     ],
+    guiaManual: [
+      {
+        titulo: "Ubicar la carpeta de trabajo en R",
+        texto: "Antes de correr el script, la base sismos_chile_limpios.xlsx debe estar en la misma carpeta de trabajo de R. Esto evita errores de ruta y permite que el script genere todos los archivos en un solo lugar.",
+        codigo: `# Revisar carpeta actual
+getwd()
+
+# Cambiar carpeta si es necesario
+# setwd("C:/Users/SuperUsuario/Downloads")
+
+# Verificar que la base está en la carpeta
+file.exists("sismos_chile_limpios.xlsx")`,
+        resultado: "El resultado de file.exists debe ser TRUE. Si da FALSE, la base no está en la carpeta correcta o el nombre está escrito distinto."
+      },
+      {
+        titulo: "Correr el script completo",
+        texto: "Esta ficha tiene un script largo porque construye variables espaciales, descarga regiones de Chile, genera resúmenes y crea un mapa interactivo. Por eso lo correcto es descargar el script completo y correrlo desde R.",
+        codigo: `# Correr el script completo
+source("script_sismos_chile.R")`,
+        resultado: "R debería generar la base con región asignada, el Excel de resúmenes, gráficos PNG y el archivo HTML del mapa interactivo."
+      },
+      {
+        titulo: "Revisar que se crearon los archivos finales",
+        texto: "Después de correr el script, hay que revisar que los archivos existan. Esto es especialmente importante para el mapa, porque la vista previa de la página depende del archivo HTML.",
+        codigo: `file.exists("sismos_chile_con_region.csv")
+file.exists("sismos_chile_con_region.xlsx")
+file.exists("mapa_interactivo_regional_sismos.html")`,
+        resultado: "Los tres resultados deberían ser TRUE. Si el mapa da FALSE, no aparecerá en la ficha y se verá un error 404."
+      },
+      {
+        titulo: "Copiar los archivos a la página",
+        texto: "Para que la página web pueda mostrar y descargar los archivos, debes copiarlos a la carpeta public/archivos del proyecto React.",
+        codigo: `# Ruta esperada en Windows
+# C:/Users/SuperUsuario/repertorio-bases/public/archivos
+
+# Archivos que deben copiarse:
+# sismos_chile_limpios.xlsx
+# sismos_chile_con_region.csv
+# sismos_chile_con_region.xlsx
+# mapa_interactivo_regional_sismos.html
+# script_sismos_chile.R`,
+        resultado: "Cuando estos archivos estén en public/archivos, la vista previa del mapa, los botones de descarga y el botón de pantalla completa deberían funcionar."
+      },
+      {
+        titulo: "Empezar el análisis estadístico",
+        texto: "Con la base final se pueden construir preguntas de investigación. Por ejemplo, comparar magnitud o profundidad según macrozona, revisar qué regiones concentran más eventos o estudiar los sismos de magnitud 5 o más.",
+        codigo: `datos <- read.csv("sismos_chile_con_region.csv")
+
+# Cantidad por región
+table(datos$region_asignada)
+
+# Profundidad por macrozona
+kruskal.test(profundidad ~ macrozona, data = datos)
+
+# Eventos fuertes por macrozona
+table(datos$macrozona, datos$sismo_mayor_5)`,
+        resultado: "La base queda lista para análisis descriptivo, mapas, pruebas no paramétricas, ANOVA y comparación de proporciones."
+      }
+    ],
     pasosProyecto: [
       {
         titulo: "1. Cargar la base de sismos",
@@ -966,49 +1036,52 @@ datos_final_casen_vivienda <- casen_vivienda
     ],
     script: `# ============================================================
 # DATASET: Sismos en Chile
-# Objetivo: asignar región a cada sismo y construir mapas
+# Objetivo: asignar región a cada sismo y construir el mapa interactivo
 # ============================================================
 
-# Esta ficha usa un script más largo que las demás porque incluye:
-# 1. lectura de la base de sismos;
-# 2. descarga de polígonos regionales de Chile;
-# 3. conversión de coordenadas a puntos espaciales;
-# 4. asignación de región por cruce espacial o región más cercana;
-# 5. creación de resúmenes por región y macrozona;
-# 6. generación de un mapa interactivo HTML.
+# Esta plantilla se trabaja en dos niveles:
+# 1. En R se corre el script completo.
+# 2. En la página se visualiza el mapa y se descargan los resultados.
 
-# Descarga el script completo desde el botón "Script completo en R".
-# El archivo esperado se llama:
-# script_sismos_chile.R
+# ARCHIVO DE ENTRADA
+# Debe estar en la misma carpeta de trabajo de R:
+# sismos_chile_limpios.xlsx
 
-# Paquetes principales usados:
-library(readxl)
-library(writexl)
-library(dplyr)
-library(ggplot2)
-library(sf)
-library(geodata)
-library(terra)
-library(jsonlite)
+# SCRIPT COMPLETO
+# Descárgalo desde el botón "Script completo en R" y ejecútalo así:
+source("script_sismos_chile.R")
 
-# Base de entrada esperada:
-sismos <- readxl::read_excel("sismos_chile_limpios.xlsx", sheet = "Datos_sismos")
+# ARCHIVOS QUE DEBERÍA GENERAR EL SCRIPT
+# sismos_chile_con_region.csv
+# sismos_chile_con_region.xlsx
+# mapa_interactivo_regional_sismos.html
+# mapa_01_cantidad_region.png
+# mapa_02_sismos_fuertes.png
 
-# El script completo realiza, en términos generales:
-# - limpieza de nombres de columnas;
-# - conversión de latitud, longitud, profundidad y magnitud a numéricas;
-# - descarga de regiones de Chile con geodata::gadm(country = "CHL", level = 1);
-# - transformación de sismos a puntos sf;
-# - cruce espacial con st_join(..., join = st_within);
-# - asignación de región más cercana para sismos ubicados en el mar;
-# - creación de macrozona;
-# - exportación de sismos_chile_con_region.csv y sismos_chile_con_region.xlsx;
-# - creación del mapa_interactivo_regional_sismos.html.
+# VERIFICAR QUE EL MAPA EXISTE
+file.exists("mapa_interactivo_regional_sismos.html")
 
-# Nota metodológica clave:
+# SI EL MAPA SE VE COMO 404 EN LA PÁGINA
+# Copia este archivo a:
+# C:/Users/SuperUsuario/repertorio-bases/public/archivos
+
+# CARGAR LA BASE FINAL PARA ANALIZAR
+sismos_final <- read.csv("sismos_chile_con_region.csv")
+
+# EJEMPLOS DE ANÁLISIS
+# Cantidad de sismos por región
+table(sismos_final$region_asignada)
+
+# Comparar profundidad según macrozona
+kruskal.test(profundidad ~ macrozona, data = sismos_final)
+
+# Revisar sismos fuertes por macrozona
+table(sismos_final$macrozona, sismos_final$sismo_mayor_5)
+
+# NOTA METODOLÓGICA
 # Los sismos ubicados en el mar no se mueven dentro de la región.
 # Se mantienen en su coordenada real y solo se asignan a la región más cercana
-# para construir resúmenes territoriales.`
+# para poder construir resúmenes territoriales.`
   },
 
   {
@@ -3266,7 +3339,7 @@ function DatasetPage({ dataset, onBack }) {
     );
   }
 
-  const guia = buildDatasetGuide(dataset);
+  const guia = Array.isArray(dataset.guiaManual) ? dataset.guiaManual : buildDatasetGuide(dataset);
   const tecnicasSeguras = Array.isArray(dataset.tecnicas) ? dataset.tecnicas : (Array.isArray(dataset.analisis) ? dataset.analisis : []);
   const variablesSeguras = Array.isArray(dataset.variables) ? dataset.variables : [];
   const preguntasSeguras = Array.isArray(dataset.preguntas) ? dataset.preguntas : [];
@@ -3291,7 +3364,24 @@ function DatasetPage({ dataset, onBack }) {
             <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.contexto || dataset.descripcion}</p>
             <h3>Usos posibles</h3>
             <p style={{ color: "#475569", lineHeight: 1.7 }}>{dataset.usos || "Base útil para iniciar análisis descriptivo, comparación de grupos y construcción de preguntas de investigación."}</p>
+            {dataset.notaMetodologica && (
+              <div style={{ marginTop: "14px", padding: "12px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "12px", color: "#1e3a8a", lineHeight: 1.65 }}>
+                <strong>Nota metodológica:</strong> {dataset.notaMetodologica}
+              </div>
+            )}
           </div>
+
+          {Array.isArray(dataset.checklistArchivos) && (
+            <div style={{ ...s.card, marginTop: "18px" }}>
+              <h2 style={{ marginTop: 0 }}>Antes de empezar: archivos que deben estar listos</h2>
+              <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
+                Esta ficha usa varios archivos porque incluye datos, script y un mapa HTML. Para que los botones, descargas y la vista previa funcionen, estos archivos deben estar en <code>public/archivos</code> dentro del proyecto de la página.
+              </p>
+              <ul style={{ color: "#475569", lineHeight: 1.9, paddingLeft: "20px" }}>
+                {dataset.checklistArchivos.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+          )}
 
           <div style={{ ...s.card, marginTop: "18px" }}>
             <h2 style={{ marginTop: 0 }}>Guía paso a paso para comenzar</h2>
@@ -3334,15 +3424,21 @@ function DatasetPage({ dataset, onBack }) {
             <div style={{ ...s.card, marginTop: "18px" }}>
               <h2 style={{ marginTop: 0 }}>Vista previa del mapa interactivo</h2>
               <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
-                Este mapa se abre dentro de la ficha. Para usarlo con más espacio, conviene abrirlo en pantalla completa. Al hacer clic en una región, se muestra un mapa detalle con sus sismos.
+                Este mapa debe estar guardado como <code>mapa_interactivo_regional_sismos.html</code> dentro de <code>public/archivos</code>. En la vista previa se puede usar dentro de la ficha; para trabajarlo mejor, abre el mapa en pantalla completa.
               </p>
-              <div style={{ marginBottom: "12px" }}>
+              {dataset.notaMapa && (
+                <div style={{ marginBottom: "12px", padding: "12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "12px", color: "#9a3412", lineHeight: 1.65 }}>
+                  <strong>Importante:</strong> {dataset.notaMapa}
+                </div>
+              )}
+              <div style={{ marginBottom: "12px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 <a style={s.button} href={dataset.mapaInteractivo} target="_blank" rel="noreferrer">Abrir mapa en pantalla completa</a>
+                {dataset.scriptDescarga && <a style={s.buttonAlt} href={dataset.scriptDescarga} download>Descargar script que genera el mapa</a>}
               </div>
               <iframe
                 src={dataset.mapaInteractivo}
                 title={`Mapa interactivo ${dataset.nombre}`}
-                style={{ width: "100%", height: "620px", border: "1px solid #cbd5e1", borderRadius: "14px", background: "#e2e8f0" }}
+                style={{ width: "100%", height: "660px", border: "1px solid #cbd5e1", borderRadius: "14px", background: "#e2e8f0" }}
               />
             </div>
           )}

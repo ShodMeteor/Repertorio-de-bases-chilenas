@@ -879,7 +879,7 @@ datos_final_casen_vivienda <- casen_vivienda
     formato: "XLSX / CSV / HTML / R",
     tamano: "Mediana",
     analisis: ["Análisis espacial", "Mapas interactivos", "Exploratorio", "ANOVA", "Kruskal-Wallis", "Chi-cuadrado"],
-    fuenteNombre: "Base preparada para el repertorio / datos de sismos con coordenadas",
+    fuenteNombre: "Base preparada para el repositorio / datos de sismos con coordenadas",
     unidad: "Evento sísmico",
     descripcion:
       "Base de sismos en Chile con fecha, latitud, longitud, profundidad y magnitud. La plantilla permite asignar cada evento a una región mediante polígonos espaciales y construir un mapa interactivo por región.",
@@ -3088,6 +3088,7 @@ const s = {
   header: { background: "#0b1220", color: "white", padding: "18px 56px", borderBottom: "4px solid #1d4ed8", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" },
   headerTitle: { margin: 0, fontSize: "22px", fontWeight: 700 },
   headerSubtitle: { margin: "5px 0 0 0", color: "#cbd5e1", fontSize: "14px" },
+  headerAuthor: { margin: "4px 0 0 0", color: "#93c5fd", fontSize: "13px", fontWeight: 700 },
   nav: { display: "flex", gap: "18px", fontSize: "14px" },
   navItem: { color: "#e5e7eb", cursor: "pointer" },
   mainWrap: { width: "100%", padding: "34px 56px" },
@@ -3116,6 +3117,9 @@ const s = {
   twoCol: { display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "22px", alignItems: "start" },
   pre: { background: "#0b1220", color: "#e5e7eb", borderRadius: "8px", padding: "22px", fontSize: "14px", lineHeight: 1.6, overflowX: "auto", whiteSpace: "pre", textAlign: "left", fontFamily: "Consolas, 'Courier New', monospace" },
   linkBox: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "16px", marginTop: "18px", color: "#334155" },
+  footer: { background: "#0b1220", color: "#cbd5e1", padding: "22px 56px", borderTop: "1px solid #1e293b", fontSize: "14px", lineHeight: 1.6 },
+  footerTitle: { color: "white", fontWeight: 700, margin: "0 0 4px 0" },
+  footerText: { margin: 0, color: "#cbd5e1" },
   stepCard: { background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: "8px", padding: "18px", marginTop: "14px" },
   stepHeader: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" },
   stepNumber: { width: "30px", height: "30px", borderRadius: "999px", background: "#0b1220", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "14px", flex: "0 0 auto" },
@@ -3431,7 +3435,7 @@ function ProjectsPage({ onBack, onOpenProject, onOpenDataset }) {
         <p style={s.eyebrow}>Proyectos guiados</p>
         <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>Ideas de proyecto con pregunta, hipótesis y test</h1>
         <p style={s.brandText}>
-          Esta sección está pensada para estudiantes que están recién entrando a trabajar con datos. Cada proyecto parte desde una base del repertorio y propone una pregunta de investigación, hipótesis, variables, pruebas estadísticas y un código inicial en R.
+          Esta sección está pensada para estudiantes que están recién entrando a trabajar con datos. Cada proyecto parte desde una base del repositorio y propone una pregunta de investigación, hipótesis, variables, pruebas estadísticas y un código inicial en R.
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: "14px", marginTop: "22px" }}>
           <input style={{ ...s.searchBox, marginTop: 0 }} placeholder="Buscar proyecto, técnica o base..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
@@ -3729,7 +3733,7 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
   return (
     <div>
       <div style={s.heroFormal}>
-        <p style={s.eyebrow}>Repertorio de bases de datos chilenas</p>
+        <p style={s.eyebrow}>Repositorio de bases de datos chilenas</p>
         <h1 style={s.brandTitle}>Catálogo académico para análisis estadístico con datos reales</h1>
         <p style={s.brandText}>
           Plataforma que reúne bases de datos chilenas organizadas por área, fuente oficial, formato,
@@ -3744,16 +3748,23 @@ function Home({ onOpenArea, onOpenDataset, onOpenExercise, onOpenCatalog, onOpen
         </div>
       </div>
 
-      <h2 style={s.title}>Sobre el repertorio</h2>
+      <h2 style={s.title}>Sobre el repositorio</h2>
       <p style={s.sectionSubtitle}>Apoyo inicial para estudiantes que necesitan trabajar con datos reales.</p>
       <div style={s.card}>
         <p style={{ color: "#475569", lineHeight: 1.7, marginTop: 0 }}>
-          El objetivo del repertorio es reunir bases de datos chilenas que puedan ser utilizadas
+          El objetivo del repositorio es reunir bases de datos chilenas que puedan ser utilizadas
           en cursos introductorios e intermedios de estadística. Cada ficha entrega contexto,
           variables relevantes, preguntas posibles y un código inicial de limpieza. La idea no
           es entregar el análisis completo, sino facilitar el punto de partida para que cada
           estudiante formule su propia pregunta, realice el análisis correspondiente e interprete
           sus resultados.
+        </p>
+      </div>
+
+      <div style={{ ...s.card, marginTop: "18px" }}>
+        <h2 style={{ marginTop: 0, fontSize: "22px" }}>Autoría del proyecto</h2>
+        <p style={{ color: "#475569", lineHeight: 1.7, margin: 0 }}>
+          Esta plataforma fue desarrollada por <strong>Patricio Alejandro Espinoza Amaya</strong> como un recurso académico orientado a facilitar el acceso, la exploración y el uso inicial de bases de datos chilenas en procesos de aprendizaje estadístico.
         </p>
       </div>
 
@@ -3864,7 +3875,7 @@ function CatalogPage({ onBack, onOpenDataset }) {
       <div style={s.heroFormal}>
         <p style={s.eyebrow}>Catálogo completo</p>
         <h1 style={{ ...s.brandTitle, fontSize: "42px" }}>Todos los datasets</h1>
-        <p style={s.brandText}>Aquí aparecen todas las bases incorporadas actualmente al repertorio.</p>
+        <p style={s.brandText}>Aquí aparecen todas las bases incorporadas actualmente al repositorio.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: "14px", marginTop: "22px" }}>
           <input style={{ ...s.searchBox, marginTop: 0 }} placeholder="Buscar dataset, variable o técnica..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
           <select style={s.input} value={area} onChange={(e) => setArea(e.target.value)}>
@@ -4445,8 +4456,9 @@ export default function App() {
     <div style={s.page}>
       <header style={s.header}>
         <div>
-          <h1 style={s.headerTitle}>Repertorio de Bases de Datos Chilenas</h1>
+          <h1 style={s.headerTitle}>Repositorio de Bases de Datos Chilenas</h1>
           <p style={s.headerSubtitle}>Plataforma académica para consulta, descarga y preparación de datos reales.</p>
+          <p style={s.headerAuthor}>Autor: Patricio Alejandro Espinoza Amaya</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
           <GlobalSearch onOpenDataset={(dataset, origen) => irA(`#/dataset/${dataset.id}/${origen}`)} />
@@ -4536,6 +4548,11 @@ export default function App() {
           />
         )}
       </main>
+
+      <footer style={s.footer}>
+        <p style={s.footerTitle}>Repositorio de Bases de Datos Chilenas</p>
+        <p style={s.footerText}>Desarrollado por Patricio Alejandro Espinoza Amaya. Plataforma académica para consulta, descarga, preparación y uso inicial de datos reales en análisis estadístico.</p>
+      </footer>
     </div>
   );
 }
